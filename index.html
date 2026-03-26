@@ -262,6 +262,7 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
     <div class="grid-2a">
       <div class="panel">
         <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--blue);"></div>Pageviews Trend</div></div>
+        <div id="trend-legend"></div>
         <div style="position:relative;height:170px;"><canvas id="trendChart"></canvas></div>
       </div>
       <div class="panel">
@@ -535,7 +536,7 @@ async function loadAll(){
 
     const [main,trend,city,country,gender,age,lang,interests,pages,prev]=await Promise.all([
       ga4(['screenPageViews','activeUsers','sessions','bounceRate','averageSessionDuration']),
-      ga4(['screenPageViews'],['date']),
+      ga4(['screenPageViews','sessions'],['date']),
       ga4(['activeUsers'],['city']),
       ga4(['activeUsers'],['country']),
       ga4(['activeUsers'],['userGender']),
@@ -638,15 +639,48 @@ function render(){
     {ic:ic.tm,bg:'var(--teal-lt)',  label:'Avg. Session Duration',val:fmtDur(d.dur),full:`Bounce ${d.br}%`,                   sub:`Bounce Rate ${d.br}%`,delta:''},
   ].map(k=>`<div class="hero-card"><div class="hero-icon" style="background:${k.bg};">${k.ic}</div><div class="hero-label">${k.label}</div><div class="hero-val">${k.val}</div><div class="hero-full">${k.full}</div><div class="hero-sub">${k.sub}</div>${k.delta}</div>`).join('');
 
-  // Trend chart
+  // Trend chart — Option B: Pageviews + Sessions + Avg reference line
   if(S.trendChart){S.trendChart.destroy();S.trendChart=null;}
+  const tLabels=d.trend.map(r=>{const s=dv(r,0);return s.length===8?`${s.slice(4,6)}/${s.slice(6,8)}`:s;});
+  const tPV=d.trend.map(r=>gv(r,0));
+  const tSess=d.trend.map(r=>gv(r,1));
+  const tAvg=tPV.length>0?Math.round(tPV.reduce((a,b)=>a+b,0)/tPV.length):0;
+  const tAvgLine=Array(tPV.length).fill(tAvg);
+
+  // Custom legend
+  document.getElementById('trend-legend').innerHTML=`
+    <div style="display:flex;gap:16px;font-size:11px;color:#6e6e73;margin-bottom:8px;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:3px;border-radius:2px;background:#0066cc;display:inline-block;"></span>Pageviews</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:3px;border-radius:2px;background:#34c759;display:inline-block;"></span>Sessions</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:0;border-top:2px dashed #ff9500;display:inline-block;"></span>Avg PV ${fmt(tAvg)}</span>
+    </div>`;
+
   S.trendChart=new Chart(document.getElementById('trendChart'),{
     type:'line',
     data:{
-      labels:d.trend.map(r=>{const s=dv(r,0);return s.length===8?`${s.slice(4,6)}/${s.slice(6,8)}`:s;}),
-      datasets:[{data:d.trend.map(r=>gv(r,0)),borderColor:'#0066cc',backgroundColor:'rgba(0,102,204,.06)',borderWidth:1.5,pointRadius:2.5,pointBackgroundColor:'#0066cc',fill:true,tension:.4}]
+      labels:tLabels,
+      datasets:[
+        {label:'Pageviews',data:tPV,borderColor:'#0066cc',backgroundColor:'rgba(0,102,204,.06)',borderWidth:1.5,pointRadius:2.5,pointBackgroundColor:'#0066cc',fill:true,tension:.4,order:2},
+        {label:'Sessions', data:tSess,borderColor:'#34c759',backgroundColor:'rgba(52,199,89,.04)',borderWidth:1.5,pointRadius:2.5,pointBackgroundColor:'#34c759',fill:true,tension:.4,order:3},
+        {label:'Avg',      data:tAvgLine,borderColor:'#ff9500',backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,tension:0,order:1},
+      ]
     },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10},maxTicksLimit:7,autoSkip:true}},y:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10}}}}}
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:ctx=>`${ctx.dataset.label}: ${Math.round(ctx.parsed.y).toLocaleString()}`
+          }
+        }
+      },
+      scales:{
+        x:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10},maxTicksLimit:7,autoSkip:true}},
+        y:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}}
+      }
+    }
   });
 
   // Gender
