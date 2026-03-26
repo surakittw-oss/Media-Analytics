@@ -28,19 +28,19 @@ body{background:var(--bg);font-family:var(--font);color:var(--ink);min-height:10
 #screen-setup{align-items:center;justify-content:center;padding:24px;}
 .setup-wrap{width:100%;max-width:480px;animation:fadeUp .4s ease;}
 .setup-brand{text-align:center;margin-bottom:32px;}
-.setup-brand-icon{width:56px;height:56px;margin:0 auto 14px;background:var(--blue);border-radius:16px;display:flex;align-items:center;justify-content:center;}
+.setup-brand-icon{width:56px;height:56px;margin:0 auto 14px;background:#e62227;border-radius:16px;display:flex;align-items:center;justify-content:center;}
 .setup-brand-title{font-size:22px;font-weight:700;letter-spacing:-.5px;}
 .setup-brand-sub{font-size:13px;color:var(--ink2);margin-top:4px;}
 .setup-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);}
 .field{margin-bottom:16px;}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--ink2);margin-bottom:7px;}
 .field input,.field select,.field textarea{width:100%;padding:10px 13px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--ink);font-family:var(--font);font-size:14px;transition:border-color .15s,box-shadow .15s;}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,102,204,.12);background:var(--surface);}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#e62227;box-shadow:0 0 0 3px rgba(230,34,39,.1);background:var(--surface);}
 .field textarea{height:64px;resize:none;font-family:var(--mono);font-size:11px;}
 .field .hint{font-size:11px;color:var(--ink3);margin-top:5px;line-height:1.5;}
-.info-box{background:var(--blue-lt);border:1px solid #c0d8f0;border-radius:10px;padding:12px 14px;font-size:12px;color:var(--blue);line-height:1.6;margin-bottom:18px;}
-.btn-main{width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;background:var(--blue);color:#fff;font-weight:600;font-size:15px;font-family:var(--font);transition:background .15s;}
-.btn-main:hover{background:#0055aa;}
+.info-box{background:#fff5f5;border:1px solid #fcc;border-radius:10px;padding:12px 14px;font-size:12px;color:#c0392b;line-height:1.6;margin-bottom:18px;}
+.btn-main{width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;background:#e62227;color:#fff;font-weight:600;font-size:15px;font-family:var(--font);transition:background .15s;}
+.btn-main:hover{background:#c41a1f;}
 code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 5px;border-radius:5px;color:var(--blue);}
 
 /* ── TOPBAR ── */
@@ -82,7 +82,8 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
 .hero-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-1px);}
 .hero-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
 .hero-label{font-size:11px;font-weight:500;color:var(--ink2);margin-bottom:6px;}
-.hero-val{font-size:24px;font-weight:700;color:var(--ink);font-family:var(--mono);letter-spacing:-1px;margin-bottom:4px;}
+.hero-val{font-size:24px;font-weight:700;color:var(--ink);font-family:var(--mono);letter-spacing:-1px;margin-bottom:2px;}
+.hero-full{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-bottom:4px;}
 .hero-sub{font-size:11px;color:var(--ink3);line-height:1.4;}
 .hero-delta{font-size:11px;font-weight:600;margin-top:5px;}
 .pos{color:#1a7f37;} .neg{color:var(--red);}
@@ -105,7 +106,9 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
 .trow-label{color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .trow-bar{width:80px;height:4px;background:var(--card2);border-radius:99px;overflow:hidden;flex-shrink:0;}
 .trow-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
-.trow-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink2);min-width:44px;text-align:right;flex-shrink:0;}
+.trow-valwrap{text-align:right;flex-shrink:0;min-width:52px;}
+.trow-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink2);display:block;}
+.trow-full{font-family:var(--mono);font-size:10px;color:var(--ink3);display:block;}
 
 /* ── DRILL-DOWN MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:500;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s ease;}
@@ -188,11 +191,11 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
     </div>
     <div class="setup-card">
       <div class="field"><label>GA4 Property ID</label><input id="propId" type="text" placeholder="123456789"><div class="hint">GA4 → Admin → Property Settings → Property ID</div></div>
-      <div class="field"><label>ชื่อ Website / สื่อ</label><input id="siteName" type="text" placeholder="thestandard.co"></div>
-      <div class="field"><label>บทความที่ publish ต่อวัน (เฉลี่ย)</label><input id="apd" type="number" placeholder="15" min="1"><div class="hint">ใช้คำนวณ Est. Pageviews / Article</div></div>
-      <div class="field"><label>Access Token</label><textarea id="token" placeholder="ya29.xxxx — OAuth Playground: analytics.readonly scope"></textarea><div class="hint"><code>developers.google.com/oauthplayground</code> → Google Analytics Data API v1beta</div></div>
-      <div class="info-box">Metrics: Pageviews · Unique Users · Est. PV/Article · Sessions · Bounce Rate · Avg Duration · City · Country · Gender · Age · Interests · Language · Top Articles</div>
-      <button class="btn-main" onclick="connect()">เชื่อมต่อ →</button>
+      <div class="field"><label>Website / Media Name</label><input id="siteName" type="text" placeholder="thestandard.co"></div>
+      <div class="field"><label>Average Articles Published per Day</label><input id="apd" type="number" placeholder="15" min="1"><div class="hint">Used to calculate Est. Pageviews / Article</div></div>
+      <div class="field"><label>Access Token</label><textarea id="token" placeholder="ya29.xxxx — Get from OAuth Playground using analytics.readonly scope"></textarea><div class="hint"><code>developers.google.com/oauthplayground</code> → Google Analytics Data API v1beta</div></div>
+      <div class="info-box">Metrics included: Pageviews · Unique Users · Est. PV/Article · Sessions · Bounce Rate · Avg Duration · City · Country · Gender · Age · Interests · Language · Top Articles</div>
+      <button class="btn-main" onclick="connect()">Connect →</button>
     </div>
   </div>
 </div>
@@ -204,7 +207,7 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
   <div class="topbar">
     <div class="topbar-l">
       <div class="topbar-logo">
-        <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect width="26" height="26" rx="7" fill="#0066cc"/><rect x="4" y="6" width="10" height="2" rx="1" fill="white" opacity=".95"/><rect x="4" y="10" width="18" height="2" rx="1" fill="white" opacity=".8"/><rect x="4" y="14" width="18" height="2" rx="1" fill="white" opacity=".8"/><rect x="4" y="18" width="12" height="2" rx="1" fill="white" opacity=".6"/><rect x="17" y="5" width="3.5" height="7" rx=".8" fill="white"/></svg>
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect width="26" height="26" rx="7" fill="#e62227"/><rect x="4" y="6" width="10" height="2" rx="1" fill="white" opacity=".95"/><rect x="4" y="10" width="18" height="2" rx="1" fill="white" opacity=".8"/><rect x="4" y="14" width="18" height="2" rx="1" fill="white" opacity=".8"/><rect x="4" y="18" width="12" height="2" rx="1" fill="white" opacity=".6"/><rect x="17" y="5" width="3.5" height="7" rx=".8" fill="white"/></svg>
         Media Analytics
       </div>
       <div class="topbar-div"></div>
@@ -312,10 +315,13 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
     <div class="ai-wrap">
       <div class="ai-header">
         <div style="display:flex;align-items:center;">
-          <div class="ai-badge"><div class="ai-badge-dot"></div>AI Analysis</div>
+          <div class="ai-badge"><div class="ai-badge-dot"></div><span id="ai-provider-label">Claude</span></div>
           <div class="ai-title-text" id="ai-title">Pitch Analysis</div>
         </div>
-        <button class="btn-sm" onclick="runAI()">วิเคราะห์ใหม่</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-sm" onclick="openSettings()">⚙ Settings</button>
+          <button class="btn-sm" onclick="runAI()">วิเคราะห์ใหม่</button>
+        </div>
       </div>
       <div class="ai-body" id="ai-body">
         <div class="ai-skel" style="width:100%"></div>
@@ -338,6 +344,47 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
     </div>
     <div class="modal-sub" id="drill-sub"></div>
     <div id="drill-body"></div>
+  </div>
+</div>
+
+<!-- AI Settings Modal -->
+<div class="modal-overlay" id="ai-settings-modal" style="display:none;" onclick="closeSettings(event)">
+  <div class="modal" style="width:460px;">
+    <div class="modal-header">
+      <div class="modal-title">⚙ AI Analysis Settings</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-sub">เลือก AI provider และใส่ API Key — ข้อมูลเก็บใน browser เท่านั้น ไม่ส่งออกไปไหน</div>
+
+    <div class="field">
+      <label>AI Provider</label>
+      <select id="set-provider" onchange="updateProviderFields()" style="width:100%;padding:10px 13px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--ink);font-family:var(--font);font-size:14px;">
+        <option value="claude">Claude (Anthropic)</option>
+        <option value="gemini">Gemini (Google)</option>
+        <option value="openai">GPT-4o (OpenAI)</option>
+      </select>
+    </div>
+
+    <div id="field-claude" class="field">
+      <label>Claude API Key</label>
+      <input id="set-claude-key" type="password" placeholder="sk-ant-api03-xxxx">
+      <div class="hint">ได้จาก <code>console.anthropic.com</code> → API Keys · รองรับ claude-sonnet-4</div>
+    </div>
+    <div id="field-gemini" class="field" style="display:none;">
+      <label>Gemini API Key</label>
+      <input id="set-gemini-key" type="password" placeholder="AIzaSyxxxx">
+      <div class="hint">ได้จาก <code>aistudio.google.com</code> → Get API Key · ใช้ gemini-1.5-flash</div>
+    </div>
+    <div id="field-openai" class="field" style="display:none;">
+      <label>OpenAI API Key</label>
+      <input id="set-openai-key" type="password" placeholder="sk-proj-xxxx">
+      <div class="hint">ได้จาก <code>platform.openai.com</code> → API Keys · ใช้ gpt-4o</div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn-main" onclick="saveSettings()" style="flex:1;">บันทึกและวิเคราะห์ใหม่</button>
+      <button class="btn-sm" onclick="closeSettings()" style="padding:12px 20px;">ยกเลิก</button>
+    </div>
   </div>
 </div>
 
@@ -584,12 +631,12 @@ function render(){
   };
 
   document.getElementById('hero-grid').innerHTML=[
-    {ic:ic.pv,bg:'var(--blue-lt)',  label:'Total Pageviews',      val:fmt(d.pv),    sub:`${S.days} วันล่าสุด`,delta:dp(d.pv_delta)},
-    {ic:ic.us,bg:'var(--green-lt)', label:'Unique Users',         val:fmt(d.users), sub:'Active users',      delta:dp(d.us_delta)},
-    {ic:ic.ss,bg:'var(--purple-lt)',label:'Sessions',             val:fmt(d.sess),  sub:`${S.days} วันล่าสุด`,delta:''},
-    {ic:ic.pa,bg:'var(--amber-lt)', label:'Est. PV / Article',    val:fmt(d.pvArt), sub:`${d.totalArt.toLocaleString()} บทความ (${S.days}วัน × ${S.apd}/วัน)`,delta:''},
-    {ic:ic.tm,bg:'var(--teal-lt)',  label:'Avg. Session Duration',val:fmtDur(d.dur),sub:`Bounce Rate ${d.br}%`,delta:''},
-  ].map(k=>`<div class="hero-card"><div class="hero-icon" style="background:${k.bg};">${k.ic}</div><div class="hero-label">${k.label}</div><div class="hero-val">${k.val}</div><div class="hero-sub">${k.sub}</div>${k.delta}</div>`).join('');
+    {ic:ic.pv,bg:'var(--blue-lt)',  label:'Total Pageviews',      val:fmt(d.pv),    full:Math.round(d.pv).toLocaleString(),    sub:`${S.days} วันล่าสุด`,delta:dp(d.pv_delta)},
+    {ic:ic.us,bg:'var(--green-lt)', label:'Unique Users',         val:fmt(d.users), full:Math.round(d.users).toLocaleString(), sub:'Active users',       delta:dp(d.us_delta)},
+    {ic:ic.ss,bg:'var(--purple-lt)',label:'Sessions',             val:fmt(d.sess),  full:Math.round(d.sess).toLocaleString(),  sub:`${S.days} วันล่าสุด`,delta:''},
+    {ic:ic.pa,bg:'var(--amber-lt)', label:'Est. PV / Article',    val:fmt(d.pvArt), full:Math.round(d.pvArt).toLocaleString(), sub:`${d.totalArt.toLocaleString()} บทความ (${S.days}วัน × ${S.apd}/วัน)`,delta:''},
+    {ic:ic.tm,bg:'var(--teal-lt)',  label:'Avg. Session Duration',val:fmtDur(d.dur),full:`Bounce ${d.br}%`,                   sub:`Bounce Rate ${d.br}%`,delta:''},
+  ].map(k=>`<div class="hero-card"><div class="hero-icon" style="background:${k.bg};">${k.ic}</div><div class="hero-label">${k.label}</div><div class="hero-val">${k.val}</div><div class="hero-full">${k.full}</div><div class="hero-sub">${k.sub}</div>${k.delta}</div>`).join('');
 
   // Trend chart
   if(S.trendChart){S.trendChart.destroy();S.trendChart=null;}
@@ -616,7 +663,7 @@ function render(){
     <div class="trow" style="cursor:default;">
       <span class="trow-label">${dv(r,0)||'Unknown'}</span>
       <div class="trow-bar"><div class="trow-fill" style="width:${(gv(r,0)/mxL)*100}%;background:var(--teal);"></div></div>
-      <span class="trow-val">${fmt(gv(r,0))}</span>
+      <div class="trow-valwrap"><span class="trow-val">${fmt(gv(r,0))}</span><span class="trow-full">${Math.round(gv(r,0)).toLocaleString()}</span></div>
     </div>`).join('');
 
   // City (with drill-down)
@@ -625,7 +672,7 @@ function render(){
     <div class="trow" onclick="openDrill('city','${dv(r,0)}',${gv(r,0)})" title="คลิกดู breakdown">
       <span class="trow-label">${dv(r,0)||'Unknown'}</span>
       <div class="trow-bar"><div class="trow-fill" style="width:${(gv(r,0)/mxC)*100}%;background:var(--green);"></div></div>
-      <span class="trow-val">${fmt(gv(r,0))}</span>
+      <div class="trow-valwrap"><span class="trow-val">${fmt(gv(r,0))}</span><span class="trow-full">${Math.round(gv(r,0)).toLocaleString()}</span></div>
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0;opacity:.35"><path d="M4.5 3l3 3-3 3" stroke="#1d1d1f" stroke-width="1.2" stroke-linecap="round"/></svg>
     </div>`).join('');
 
@@ -635,7 +682,7 @@ function render(){
     <div class="trow" onclick="openDrill('country','${dv(r,0)}',${gv(r,0)})" title="คลิกดู breakdown">
       <span class="trow-label">${dv(r,0)||'Unknown'}</span>
       <div class="trow-bar"><div class="trow-fill" style="width:${(gv(r,0)/mxCo)*100}%;background:var(--amber);"></div></div>
-      <span class="trow-val">${fmt(gv(r,0))}</span>
+      <div class="trow-valwrap"><span class="trow-val">${fmt(gv(r,0))}</span><span class="trow-full">${Math.round(gv(r,0)).toLocaleString()}</span></div>
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0;opacity:.35"><path d="M4.5 3l3 3-3 3" stroke="#1d1d1f" stroke-width="1.2" stroke-linecap="round"/></svg>
     </div>`).join('');
 
@@ -771,51 +818,92 @@ function closeDrill(e){
     document.getElementById('drill-modal').style.display='none';
 }
 
-// ══ AI ── fixed via allorigins proxy ──
+// ══ AI SETTINGS ══
+let AI = {
+  provider: localStorage.getItem('ai_provider')||'claude',
+  claudeKey: localStorage.getItem('ai_claude_key')||'',
+  geminiKey: localStorage.getItem('ai_gemini_key')||'',
+  openaiKey: localStorage.getItem('ai_openai_key')||'',
+};
+
+function openSettings(){
+  document.getElementById('ai-settings-modal').style.display='flex';
+  document.getElementById('set-provider').value=AI.provider;
+  document.getElementById('set-claude-key').value=AI.claudeKey;
+  document.getElementById('set-gemini-key').value=AI.geminiKey;
+  document.getElementById('set-openai-key').value=AI.openaiKey;
+  updateProviderFields();
+}
+function closeSettings(e){
+  if(!e||e.target===document.getElementById('ai-settings-modal'))
+    document.getElementById('ai-settings-modal').style.display='none';
+}
+function updateProviderFields(){
+  const p=document.getElementById('set-provider').value;
+  document.getElementById('field-claude').style.display=p==='claude'?'block':'none';
+  document.getElementById('field-gemini').style.display=p==='gemini'?'block':'none';
+  document.getElementById('field-openai').style.display=p==='openai'?'block':'none';
+}
+function saveSettings(){
+  AI.provider=document.getElementById('set-provider').value;
+  AI.claudeKey=document.getElementById('set-claude-key').value.trim();
+  AI.geminiKey=document.getElementById('set-gemini-key').value.trim();
+  AI.openaiKey=document.getElementById('set-openai-key').value.trim();
+  localStorage.setItem('ai_provider',AI.provider);
+  localStorage.setItem('ai_claude_key',AI.claudeKey);
+  localStorage.setItem('ai_gemini_key',AI.geminiKey);
+  localStorage.setItem('ai_openai_key',AI.openaiKey);
+  closeSettings();
+  // update badge
+  const labels={claude:'Claude',gemini:'Gemini',openai:'GPT-4o'};
+  document.getElementById('ai-provider-label').textContent=labels[AI.provider]||'AI';
+  if(S.data) runAI();
+}
+
 async function runAI(){
   const d=S.data; const cfg=MODE[S.mode]; if(!d) return;
   document.getElementById('ai-title').textContent=cfg.title;
   document.getElementById('ai-body').innerHTML=[100,80,93,66,88].map(w=>`<div class="ai-skel" style="width:${w}%"></div>`).join('');
-
   const prompt=cfg.prompt(d,S.siteName);
   try{
-    // Route through allorigins to avoid CORS when opening as local HTML file
-    const payload={
-      model:'claude-sonnet-4-20250514',
-      max_tokens:1000,
-      messages:[{role:'user',content:prompt}]
-    };
-    const res=await fetch('https://allorigins.win/get?url='+encodeURIComponent('https://api.anthropic.com/v1/messages'),{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        url:'https://api.anthropic.com/v1/messages',
-        raw:true,
-        method:'POST',
-        headers:{'content-type':'application/json','anthropic-version':'2023-06-01'},
-        body:JSON.stringify(payload)
-      })
-    });
-
-    // allorigins wraps response — try direct first, fallback to proxy
     let text='';
-    try{
-      const direct=await fetch('https://api.anthropic.com/v1/messages',{
+    if(AI.provider==='claude'){
+      const key=AI.claudeKey;
+      if(!key) throw new Error('กรุณาใส่ Claude API Key ใน Settings ก่อนครับ');
+      const r=await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
-        headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01'},
-        body:JSON.stringify(payload)
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
       });
-      const j=await direct.json();
+      const j=await r.json();
+      if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
       text=j.content?.[0]?.text||'';
-    }catch{
-      // CORS blocked — use Claude built-in if available
-      text='⚠️ AI Analysis ไม่สามารถเรียกใช้ได้โดยตรงจาก HTML file เนื่องจาก browser security (CORS)\n\nวิธีแก้:\n1. เปิดไฟล์นี้ผ่าน web server เช่น VS Code Live Server หรือ npx serve\n2. หรือใช้ Claude.ai แล้ว paste ข้อมูลนี้:\n\n'+prompt.slice(0,600)+'...';
+    } else if(AI.provider==='gemini'){
+      const key=AI.geminiKey;
+      if(!key) throw new Error('กรุณาใส่ Gemini API Key ใน Settings ก่อนครับ');
+      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000}})
+      });
+      const j=await r.json();
+      if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
+      text=j.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    } else if(AI.provider==='openai'){
+      const key=AI.openaiKey;
+      if(!key) throw new Error('กรุณาใส่ OpenAI API Key ใน Settings ก่อนครับ');
+      const r=await fetch('https://api.openai.com/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
+        body:JSON.stringify({model:'gpt-4o',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+      });
+      const j=await r.json();
+      if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
+      text=j.choices?.[0]?.message?.content||'';
     }
-    if(text){
-      document.getElementById('ai-body').textContent=text;
-    }
+    document.getElementById('ai-body').textContent=text||'ไม่ได้รับผลลัพธ์จาก AI';
   }catch(e){
-    document.getElementById('ai-body').innerHTML=`<div class="ai-error">❌ ${e.message}<br><br><strong>วิธีแก้:</strong> เปิดไฟล์นี้ผ่าน web server แทนการเปิดจาก file:// โดยตรง<br>ใช้ <code>npx serve .</code> หรือ VS Code Live Server</div>`;
+    document.getElementById('ai-body').innerHTML=`<div class="ai-error">❌ ${e.message}<br><br>ตรวจสอบ API Key ใน <strong>Settings</strong> (ปุ่มบน AI panel)</div>`;
   }
 }
 
@@ -878,6 +966,9 @@ function connect(){
   document.getElementById('screen-setup').classList.remove('active');
   document.getElementById('screen-dashboard').classList.add('active');
   document.getElementById('topbar-site').textContent=S.siteName;
+  // sync AI provider label
+  const labels={claude:'Claude',gemini:'Gemini',openai:'GPT-4o'};
+  document.getElementById('ai-provider-label').textContent=labels[AI.provider]||'AI';
   // set default date inputs
   const today=new Date().toISOString().slice(0,10);
   const ago30=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
