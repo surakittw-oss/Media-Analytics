@@ -1162,14 +1162,14 @@ async function fetchRTFull(){
           limit:8
         })
       }),
-      // Sources now
+      // Sources now — realtime API รองรับ sessionDefaultChannelGrouping อย่างเดียว
       fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${S.propId}:runRealtimeReport`,{
         method:'POST',
         headers:{Authorization:`Bearer ${S.token}`,'Content-Type':'application/json'},
         body:JSON.stringify({
-          dimensions:[{name:'firstSessionDate'},{name:'sessionDefaultChannelGrouping'}],
+          dimensions:[{name:'sessionDefaultChannelGrouping'}],
           metrics:[{name:'activeUsers'}],
-          limit:20
+          limit:10
         })
       }),
     ]);
@@ -1222,7 +1222,7 @@ async function fetchRTFull(){
     // Sources
     const srcMap = {};
     (sj.rows||[]).forEach(r => {
-      const ch = r.dimensionValues?.[1]?.value || 'Other';
+      const ch = r.dimensionValues?.[0]?.value || 'Other';
       srcMap[ch] = (srcMap[ch]||0) + parseInt(r.metricValues?.[0]?.value||0);
     });
     const srcEntries = Object.entries(srcMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -1290,6 +1290,10 @@ function connect(){
   document.getElementById('screen-setup').classList.remove('active');
   document.getElementById('screen-dashboard').classList.add('active');
   document.getElementById('topbar-site').textContent=S.siteName;
+  // ensure correct initial state
+  document.getElementById('rt-content').style.display='none';
+  document.getElementById('export-area').style.display='';
+  document.getElementById('date-bar').style.display='';
   // sync AI provider label
   const labels={claude:'Claude',gemini:'Gemini',openai:'GPT-4o'};
   document.getElementById('ai-provider-label').textContent=labels[AI.provider]||'AI';
