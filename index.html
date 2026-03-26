@@ -374,7 +374,7 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
     <div id="field-gemini" class="field" style="display:none;">
       <label>Gemini API Key</label>
       <input id="set-gemini-key" type="password" placeholder="AIzaSyxxxx">
-      <div class="hint">ได้จาก <code>aistudio.google.com</code> → Get API Key · ใช้ gemini-1.5-flash</div>
+      <div class="hint">ได้จาก <code>aistudio.google.com</code> → Get API Key · ใช้ gemini-2.0-flash</div>
     </div>
     <div id="field-openai" class="field" style="display:none;">
       <label>OpenAI API Key</label>
@@ -915,7 +915,7 @@ async function runAI(){
     } else if(AI.provider==='gemini'){
       const key=AI.geminiKey;
       if(!key) throw new Error('กรุณาใส่ Gemini API Key ใน Settings ก่อนครับ');
-      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{
+      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000}})
