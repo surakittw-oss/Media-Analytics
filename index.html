@@ -267,6 +267,12 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
   <div class="mode-bar">
     <button class="mode-tab on" id="tab-pitch" onclick="setMode('pitch')">Pitch โฆษณา</button>
     <button class="mode-tab" id="tab-report" onclick="setMode('report')">Monthly Report</button>
+    <button class="mode-tab" id="tab-realtime" onclick="setMode('realtime')">
+      <span style="display:inline-flex;align-items:center;gap:6px;">
+        <span id="rt-tab-dot" style="width:6px;height:6px;border-radius:50%;background:#34c759;display:inline-block;animation:blink 1.8s infinite;"></span>
+        Realtime
+      </span>
+    </button>
   </div>
 
   <!-- Date Bar -->
@@ -374,6 +380,66 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
     </div>
 
     <div class="footer"><span id="footer-l">—</span><span id="footer-r">—</span></div>
+  </div>
+
+  <!-- ══ REALTIME CONTENT ══ -->
+  <div id="rt-content" style="display:none;" class="content">
+
+    <!-- RT Hero -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;" id="rt-hero">
+      <div class="hero-card" style="border-top:2px solid #34c759;grid-column:1/2;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:#34c759;animation:blink 1.8s infinite;"></div>
+          <div class="hero-label" style="margin:0;">Active Users Right Now</div>
+        </div>
+        <div class="hero-val" id="rt-users" style="font-size:48px;letter-spacing:-2px;">—</div>
+        <div class="hero-sub" id="rt-updated">กำลังโหลด...</div>
+      </div>
+      <div class="hero-card" style="border-top:2px solid var(--blue);">
+        <div class="hero-label">Views (30 min)</div>
+        <div class="hero-val" id="rt-views30" style="font-size:28px;">—</div>
+        <div class="hero-sub">ช่วง 30 นาทีล่าสุด</div>
+      </div>
+      <div class="hero-card" style="border-top:2px solid var(--amber);">
+        <div class="hero-label">New Users (30 min)</div>
+        <div class="hero-val" id="rt-new30" style="font-size:28px;">—</div>
+        <div class="hero-sub">ผู้ใช้ใหม่ในช่วงนี้</div>
+      </div>
+    </div>
+
+    <!-- RT Chart + Sources + Pages -->
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:14px;">
+
+      <!-- 30-min sparkline -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="ptile-bar" style="background:#34c759;"></div>Active Users — Last 30 Minutes</div>
+          <div style="font-size:11px;color:var(--ink3);">Auto-refresh ทุก 30 วิ</div>
+        </div>
+        <div style="position:relative;height:160px;"><canvas id="rtChart"></canvas></div>
+      </div>
+
+      <!-- Traffic Sources RT -->
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--blue);"></div>Traffic Sources</div></div>
+        <div id="rt-sources">
+          <div class="skel" style="height:14px;margin-bottom:10px;border-radius:4px;"></div>
+          <div class="skel" style="height:14px;margin-bottom:10px;border-radius:4px;width:80%;"></div>
+          <div class="skel" style="height:14px;border-radius:4px;width:60%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Pages RT -->
+    <div class="panel" style="margin-bottom:16px;">
+      <div class="panel-header">
+        <div class="panel-title"><div class="ptile-bar" style="background:var(--amber);"></div>Top Pages Right Now</div>
+        <div style="font-size:11px;color:var(--ink3);">เรียงตาม active users</div>
+      </div>
+      <div id="rt-pages" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;"></div>
+    </div>
+
+    <div class="footer"><span>Realtime · Auto-refresh ทุก 30 วินาที</span><span id="rt-last-update">—</span></div>
   </div>
 </div>
 
@@ -1046,11 +1112,173 @@ function loadScript(src){
 }
 
 // ══ UI HELPERS ══
+let rtInterval = null;
+let rtChart = null;
+let rtHistory = []; // rolling 30-min buffer [{t, users}]
+
 function setMode(m){
-  S.mode=m;
-  document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('on'));
+  S.mode = m;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('on'));
   document.getElementById(`tab-${m}`).classList.add('on');
-  if(S.data) runAI();
+
+  const isRT = m === 'realtime';
+  document.getElementById('export-area').style.display = isRT ? 'none' : '';
+  document.getElementById('rt-content').style.display  = isRT ? '' : 'none';
+  document.getElementById('date-bar').style.display    = isRT ? 'none' : '';
+
+  if(isRT){
+    startRealtime();
+  } else {
+    stopRealtime();
+    if(S.data) runAI();
+  }
+}
+
+function startRealtime(){
+  fetchRTFull();
+  rtInterval = setInterval(fetchRTFull, 30000);
+}
+function stopRealtime(){
+  clearInterval(rtInterval);
+  rtInterval = null;
+}
+
+async function fetchRTFull(){
+  try{
+    const [usersRes, pagesRes, sourcesRes] = await Promise.all([
+      // Active users now
+      fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${S.propId}:runRealtimeReport`,{
+        method:'POST',
+        headers:{Authorization:`Bearer ${S.token}`,'Content-Type':'application/json'},
+        body:JSON.stringify({metrics:[{name:'activeUsers'},{name:'screenPageViews'},{name:'newUsers'}]})
+      }),
+      // Top pages now
+      fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${S.propId}:runRealtimeReport`,{
+        method:'POST',
+        headers:{Authorization:`Bearer ${S.token}`,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          dimensions:[{name:'unifiedPagePathScreen'}],
+          metrics:[{name:'activeUsers'}],
+          limit:8
+        })
+      }),
+      // Sources now
+      fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${S.propId}:runRealtimeReport`,{
+        method:'POST',
+        headers:{Authorization:`Bearer ${S.token}`,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          dimensions:[{name:'firstSessionDate'},{name:'sessionDefaultChannelGrouping'}],
+          metrics:[{name:'activeUsers'}],
+          limit:20
+        })
+      }),
+    ]);
+
+    const [uj, pj, sj] = await Promise.all([usersRes.json(), pagesRes.json(), sourcesRes.json()]);
+
+    // Active users
+    const activeUsers = parseInt(uj.rows?.[0]?.metricValues?.[0]?.value||0);
+    const views30     = parseInt(uj.rows?.[0]?.metricValues?.[1]?.value||0);
+    const new30       = parseInt(uj.rows?.[0]?.metricValues?.[2]?.value||0);
+
+    document.getElementById('rt-users').textContent   = activeUsers.toLocaleString();
+    document.getElementById('rt-views30').textContent = fmt(views30);
+    document.getElementById('rt-new30').textContent   = fmt(new30);
+    document.getElementById('rt-updated').textContent = `Updated ${new Date().toLocaleTimeString('th-TH')}`;
+    document.getElementById('rt-last-update').textContent = `Updated ${new Date().toLocaleString('th-TH')}`;
+
+    // Update live badge on topbar too
+    document.getElementById('live-count').textContent = activeUsers.toLocaleString();
+    document.getElementById('live-badge').style.display = 'flex';
+
+    // Rolling history for sparkline
+    const now = new Date();
+    rtHistory.push({ t: now, users: activeUsers });
+    // Keep only last 30 entries (30 min at 1/min rate, or ~15 min at 30s intervals)
+    if(rtHistory.length > 30) rtHistory.shift();
+
+    // Draw sparkline
+    renderRTChart();
+
+    // Top pages
+    const pages = pj.rows || [];
+    const maxPU = Math.max(...pages.map(r => parseInt(r.metricValues?.[0]?.value||0)), 1);
+    document.getElementById('rt-pages').innerHTML = pages.length ? pages.map(r => {
+      const path   = r.dimensionValues?.[0]?.value || '/';
+      const users  = parseInt(r.metricValues?.[0]?.value||0);
+      const pct    = Math.round((users/maxPU)*100);
+      const short  = path.length > 52 ? path.slice(0,49)+'...' : path;
+      return `<div style="background:var(--card2);border-radius:10px;padding:10px 14px;">
+        <div style="font-size:11px;font-family:var(--mono);color:var(--ink2);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${short}</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;height:4px;background:var(--border);border-radius:99px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:#34c759;border-radius:99px;transition:width .8s ease;"></div>
+          </div>
+          <span style="font-size:12px;font-family:var(--mono);font-weight:600;color:var(--ink);min-width:28px;text-align:right;">${users}</span>
+        </div>
+      </div>`;
+    }).join('') : '<div style="font-size:13px;color:var(--ink3);padding:8px;">ไม่มีข้อมูล page ขณะนี้</div>';
+
+    // Sources
+    const srcMap = {};
+    (sj.rows||[]).forEach(r => {
+      const ch = r.dimensionValues?.[1]?.value || 'Other';
+      srcMap[ch] = (srcMap[ch]||0) + parseInt(r.metricValues?.[0]?.value||0);
+    });
+    const srcEntries = Object.entries(srcMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxSrc = srcEntries[0]?.[1] || 1;
+    const srcColors = {'Organic Search':'#34c759','Direct':'#0066cc','Organic Social':'#5856d6','Paid Search':'#ff9500','Referral':'#5ac8fa','Email':'#e62227'};
+    document.getElementById('rt-sources').innerHTML = srcEntries.length ? srcEntries.map(([ch, val]) => {
+      const color = srcColors[ch] || '#aeaeb2';
+      return `<div class="trow" style="cursor:default;">
+        <span class="trow-label" style="font-size:12px;">${ch}</span>
+        <div class="trow-bar" style="width:70px;"><div class="trow-fill" style="width:${(val/maxSrc)*100}%;background:${color};"></div></div>
+        <div class="trow-valwrap"><span class="trow-val">${val}</span></div>
+      </div>`;
+    }).join('') : '<div style="font-size:13px;color:var(--ink3);padding:8px;">ไม่มีข้อมูล source ขณะนี้</div>';
+
+  }catch(e){
+    document.getElementById('rt-users').textContent = 'Error';
+    document.getElementById('rt-updated').textContent = e.message;
+  }
+}
+
+function renderRTChart(){
+  const labels = rtHistory.map(h => h.t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+  const data   = rtHistory.map(h => h.users);
+
+  if(rtChart){
+    rtChart.data.labels = labels;
+    rtChart.data.datasets[0].data = data;
+    rtChart.update('none');
+    return;
+  }
+
+  rtChart = new Chart(document.getElementById('rtChart'),{
+    type:'line',
+    data:{
+      labels,
+      datasets:[{
+        data,
+        borderColor:'#34c759',
+        backgroundColor:'rgba(52,199,89,.08)',
+        borderWidth:2,
+        pointRadius: data.length <= 5 ? 4 : 2,
+        pointBackgroundColor:'#34c759',
+        fill:true,
+        tension:.4,
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      animation:{duration:300},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} users`}}},
+      scales:{
+        x:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10},maxTicksLimit:6,autoSkip:true}},
+        y:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10}},min:0},
+      }
+    }
+  });
 }
 function connect(){
   const p=document.getElementById('propId').value.trim();
@@ -1074,6 +1302,9 @@ function connect(){
   loadAll();
 }
 function logout(){
+  stopRealtime();
+  if(rtChart){ rtChart.destroy(); rtChart=null; }
+  rtHistory=[];
   document.getElementById('screen-dashboard').classList.remove('active');
   document.getElementById('screen-setup').classList.add('active');
 }
