@@ -157,9 +157,42 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
 .ai-skel{height:12px;background:var(--card2);border-radius:4px;animation:pulse 1.5s infinite;margin-bottom:9px;}
 .ai-error{font-size:13px;color:var(--red);background:var(--red-lt);border:1px solid #ffc9c6;border-radius:8px;padding:12px 14px;line-height:1.6;}
 
-/* ── EXPORT TOOLBAR ── */
-.export-bar{display:flex;align-items:center;gap:8px;padding:12px 0 4px;border-top:1px solid var(--border);margin-top:16px;}
-.export-label{font-size:11px;color:var(--ink3);margin-right:4px;}
+/* ── ALERT CARDS ── */
+.alert-card{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:10px;border:1px solid;}
+.alert-card.critical{background:#fff0ef;border-color:#ffc9c6;}
+.alert-card.warning{background:var(--amber-lt);border-color:#fcd34d;}
+.alert-card.good{background:var(--green-lt);border-color:#b8eec9;}
+.alert-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+.alert-card.critical .alert-icon{background:#fee2e2;}
+.alert-card.warning .alert-icon{background:#fef3c7;}
+.alert-card.good .alert-icon{background:var(--green-lt);}
+.alert-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.alert-card.critical .alert-title{color:var(--red);}
+.alert-card.warning .alert-title{color:var(--amber);}
+.alert-card.good .alert-title{color:#1a7f37;}
+.alert-desc{font-size:12px;color:var(--ink2);line-height:1.5;}
+.alert-action{font-size:11px;font-weight:600;margin-top:5px;}
+.alert-card.critical .alert-action{color:var(--red);}
+.alert-card.warning .alert-action{color:var(--amber);}
+.alert-card.good .alert-action{color:#1a7f37;}
+.job-tab{padding:8px 18px;background:none;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;color:var(--ink2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+.job-tab.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+.job-tab:hover:not(.on){color:var(--ink);}
+
+/* Job KPI mini card */
+.job-kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.job-kpi-label{font-size:10px;font-weight:500;color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.job-kpi-val{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--ink);letter-spacing:-.5px;margin-bottom:2px;}
+.job-kpi-sub{font-size:11px;color:var(--ink3);}
+
+/* Job table */
+.job-row{display:grid;grid-template-columns:1fr repeat(3,90px);gap:8px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--border);font-size:12px;cursor:default;}
+.job-row:last-child{border-bottom:none;}
+.job-row:hover{background:var(--card2);border-radius:6px;}
+.job-row-head{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;padding:6px 6px 8px;}
+.job-row-head{display:grid;grid-template-columns:1fr repeat(3,90px);gap:8px;border-bottom:2px solid var(--border);}
+.job-cell{text-align:right;font-family:var(--mono);color:var(--ink2);}
+.job-cell-label{color:var(--ink);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* ── MISC ── */
 .err-bar{background:var(--red-lt);border:1px solid #ffc9c6;border-radius:10px;padding:10px 15px;margin:0 24px 12px;font-size:12px;color:var(--red);display:none;}
@@ -362,14 +395,17 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
 
   <!-- Mode Tabs -->
   <div class="mode-bar">
-    <button class="mode-tab on" id="tab-pitch" onclick="setMode('pitch')">Pitch โฆษณา</button>
-    <button class="mode-tab" id="tab-report" onclick="setMode('report')">Monthly Report</button>
-    <button class="mode-tab" id="tab-realtime" onclick="setMode('realtime')">
+    <button class="mode-tab on" id="tab-pitch"    onclick="setMode('pitch')">Pitch โฆษณา</button>
+    <button class="mode-tab"    id="tab-report"   onclick="setMode('report')">Monthly Report</button>
+    <button class="mode-tab"    id="tab-weekly"   onclick="setMode('weekly')">Weekly Digest</button>
+    <button class="mode-tab"    id="tab-realtime" onclick="setMode('realtime')">
       <span style="display:inline-flex;align-items:center;gap:6px;">
-        <span id="rt-tab-dot" style="width:6px;height:6px;border-radius:50%;background:#34c759;display:inline-block;animation:blink 1.8s infinite;"></span>
+        <span style="width:6px;height:6px;border-radius:50%;background:#34c759;display:inline-block;animation:blink 1.8s infinite;"></span>
         Realtime
       </span>
     </button>
+    <button class="mode-tab" id="tab-jobs"    onclick="setMode('jobs')">Jobs</button>
+    <button class="mode-tab" id="tab-geo"     onclick="setMode('geo')">GEO & AIO</button>
   </div>
 
   <!-- Date Bar -->
@@ -456,6 +492,19 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
       </div>
     </div>
 
+    <!-- ── PROACTIVE ALERTS ── -->
+    <div id="alert-panel" style="margin-bottom:16px;display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:3px;height:14px;background:#e62227;border-radius:99px;"></div>
+          <span style="font-size:11px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;">Proactive Alerts</span>
+          <span id="alert-count-badge" style="display:none;background:#e62227;color:white;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;"></span>
+        </div>
+        <button class="btn-sm" onclick="runAlerts()" style="font-size:11px;">↺ ตรวจสอบใหม่</button>
+      </div>
+      <div id="alert-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
     <!-- AI Panel -->
     <div class="ai-wrap">
       <div class="ai-header">
@@ -537,6 +586,201 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
     </div>
 
     <div class="footer"><span>Realtime · Auto-refresh ทุก 30 วินาที</span><span id="rt-last-update">—</span></div>
+  </div>
+
+  <!-- ══ WEEKLY DIGEST ══ -->
+  <div id="weekly-content" style="display:none;" class="content">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;" id="weekly-kpi">
+      <div class="skel" style="height:90px;"></div><div class="skel" style="height:90px;"></div>
+      <div class="skel" style="height:90px;"></div><div class="skel" style="height:90px;"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;" class="rt-grid-2">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--blue);"></div>This Week vs Last Week</div></div>
+        <div style="position:relative;height:200px;"><canvas id="weeklyChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--green);"></div>Top Performing Pages This Week</div></div>
+        <div id="weekly-pages"></div>
+      </div>
+    </div>
+    <div class="ai-wrap" style="border-color:#c8ddb0;background:#f8fdf5;">
+      <div class="ai-header">
+        <div style="display:flex;align-items:center;">
+          <div class="ai-badge" style="background:#e8f5e9;border-color:#c8ddb0;color:#1a7f37;"><div class="ai-badge-dot" style="background:#34c759;"></div>Weekly AI Summary</div>
+        </div>
+        <button class="btn-sm" onclick="runWeeklyAI()">สรุปใหม่</button>
+      </div>
+      <div class="ai-body" id="weekly-ai-body">
+        <div style="font-size:13px;color:var(--ink3);">กดปุ่ม "สรุปใหม่" หรือรอโหลดข้อมูลครับ</div>
+      </div>
+    </div>
+    <div class="footer"><span>Weekly Digest · เทียบ 7 วันนี้ vs 7 วันที่แล้ว</span><span id="weekly-footer-r">—</span></div>
+  </div>
+
+  <!-- ══ GEO & AIO ══ -->
+  <div id="geo-content" style="display:none;" class="content">
+    <!-- Sub-tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:0;">
+      <button class="job-tab on" id="gtab-geo" onclick="setGeoTab('geo')">GEO Analysis</button>
+      <button class="job-tab" id="gtab-aio" onclick="setGeoTab('aio')">AIO Score</button>
+    </div>
+
+    <!-- GEO Panel -->
+    <div id="gpanel-geo">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;" id="geo-kpi">
+        <div class="skel" style="height:90px;"></div><div class="skel" style="height:90px;"></div><div class="skel" style="height:90px;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;" class="grid-3">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--green);"></div>Top Cities (Organic)</div></div>
+          <div id="geo-org-city"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--blue);"></div>International Traffic</div></div>
+          <div id="geo-intl"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--teal);"></div>Language × Channel</div></div>
+          <div id="geo-lang-ch"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AIO Panel -->
+    <div id="gpanel-aio" style="display:none;">
+      <div style="background:var(--blue-lt);border:1px solid #c0d8f0;border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;color:var(--blue);line-height:1.7;">
+        <strong>AIO (AI-Optimized Content)</strong> วิเคราะห์ว่าบทความไหนมีโอกาสถูก AI search engine (ChatGPT, Gemini, Perplexity) หยิบไปใช้ — ดูจาก avg time on page, low bounce rate, organic traffic สูง และ content depth
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;" id="aio-kpi">
+        <div class="skel" style="height:90px;"></div><div class="skel" style="height:90px;"></div><div class="skel" style="height:90px;"></div>
+      </div>
+      <div class="panel" style="margin-bottom:14px;">
+        <div class="panel-header">
+          <div class="panel-title"><div class="ptile-bar" style="background:var(--purple);"></div>AIO Score — Top Content</div>
+          <div style="font-size:11px;color:var(--ink3);">คะแนนจาก Time on Page + Organic + Low Bounce</div>
+        </div>
+        <div id="aio-table"></div>
+      </div>
+      <div class="ai-wrap" style="border-color:#d4c6f7;background:#f9f7ff;">
+        <div class="ai-header">
+          <div style="display:flex;align-items:center;">
+            <div class="ai-badge" style="background:var(--purple-lt);border-color:#c4b5f7;color:var(--purple);"><div class="ai-badge-dot" style="background:var(--purple);"></div>AIO Advisor</div>
+          </div>
+          <button class="btn-sm" onclick="runAIOAdvisor()">วิเคราะห์ใหม่</button>
+        </div>
+        <div class="ai-body" id="aio-ai-body">
+          <div style="font-size:13px;color:var(--ink3);">กดปุ่ม "วิเคราะห์ใหม่" เพื่อให้ AI แนะนำ content strategy สำหรับ AI search engine</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"><span>GEO & AIO · ข้อมูลจาก GA4</span><span id="geo-footer-r">—</span></div>
+  </div>
+
+  <!-- ══ JOBS CONTENT ══ -->
+  <div id="jobs-content" style="display:none;" class="content">
+
+    <!-- Sub-tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:0;">
+      <button class="job-tab on" id="jtab-campaign" onclick="setJobTab('campaign')">Campaign</button>
+      <button class="job-tab" id="jtab-content" onclick="setJobTab('content')">Content</button>
+      <button class="job-tab" id="jtab-seo" onclick="setJobTab('seo')">SEO</button>
+    </div>
+
+    <!-- ── CAMPAIGN ── -->
+    <div id="jpanel-campaign">
+      <!-- KPIs -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;" id="job-campaign-kpi">
+        <div class="skel" style="height:90px;"></div>
+        <div class="skel" style="height:90px;"></div>
+        <div class="skel" style="height:90px;"></div>
+        <div class="skel" style="height:90px;"></div>
+      </div>
+      <!-- Chart + breakdown -->
+      <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-bottom:14px;" class="rt-grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><div class="ptile-bar" style="background:var(--blue);"></div>Paid Sessions Trend</div>
+          </div>
+          <div style="position:relative;height:180px;"><canvas id="campaignChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><div class="ptile-bar" style="background:var(--purple);"></div>Channel Breakdown</div>
+          </div>
+          <div id="job-channel-list"></div>
+        </div>
+      </div>
+      <!-- Campaign table -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="ptile-bar" style="background:var(--amber);"></div>Sessions by Landing Page (Paid)</div>
+          <div class="panel-search">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="#aeaeb2" stroke-width="1.2"/><path d="M8 8l2 2" stroke="#aeaeb2" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <input type="text" placeholder="ค้นหา URL..." oninput="filterJobTable('job-campaign-pages',this.value)">
+          </div>
+        </div>
+        <div id="job-campaign-pages"></div>
+      </div>
+    </div>
+
+    <!-- ── CONTENT ── -->
+    <div id="jpanel-content" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;" id="job-content-kpi">
+        <div class="skel" style="height:90px;"></div>
+        <div class="skel" style="height:90px;"></div>
+        <div class="skel" style="height:90px;"></div>
+        <div class="skel" style="height:90px;"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="ptile-bar" style="background:var(--amber);"></div>Top Content by Pageviews</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <select id="content-sort" onchange="renderContentTab()" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:12px;background:var(--surface);cursor:pointer;">
+              <option value="views">Sort: Pageviews</option>
+              <option value="dur">Sort: Avg Duration</option>
+              <option value="users">Sort: Users</option>
+            </select>
+            <div class="panel-search">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="#aeaeb2" stroke-width="1.2"/><path d="M8 8l2 2" stroke="#aeaeb2" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <input type="text" placeholder="ค้นหา..." oninput="filterJobTable('job-content-table',this.value)">
+            </div>
+          </div>
+        </div>
+        <div id="job-content-table"></div>
+      </div>
+    </div>
+
+    <!-- ── SEO ── -->
+    <div id="jpanel-seo" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;" id="job-seo-kpi">
+        <div class="skel" style="height:90px;"></div>
+        <div class="skel" style="height:90px;"></div>
+        <div class="skel" style="height:90px;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:14px;margin-bottom:14px;" class="rt-grid-2">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--green);"></div>Organic Sessions Trend</div></div>
+          <div style="position:relative;height:180px;"><canvas id="seoChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-title"><div class="ptile-bar" style="background:var(--teal);"></div>Organic by Language</div></div>
+          <div id="job-seo-lang"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><div class="ptile-bar" style="background:var(--green);"></div>Top Organic Landing Pages</div>
+          <div class="panel-search">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="#aeaeb2" stroke-width="1.2"/><path d="M8 8l2 2" stroke="#aeaeb2" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <input type="text" placeholder="ค้นหา URL..." oninput="filterJobTable('job-seo-pages',this.value)">
+          </div>
+        </div>
+        <div id="job-seo-pages"></div>
+      </div>
+    </div>
+
+    <div class="footer"><span>Jobs · ข้อมูลจาก GA4</span><span id="jobs-footer-r">—</span></div>
   </div>
 </div>
 
@@ -788,6 +1032,7 @@ async function loadAll(){
 
     render();
     fetchRT();
+    runAlerts();
     runAI();
     document.getElementById('footer-l').textContent=`GA4: ${S.propId} · ${S.siteName}`;
     document.getElementById('footer-r').textContent=`Updated ${new Date().toLocaleString('th-TH')}`;
@@ -1120,49 +1365,14 @@ function saveSettings(){
 }
 
 async function runAI(){
-  const d=S.data; const cfg=MODE[S.mode]; if(!d) return;
+  const d=S.data; const cfg=MODE[S.mode]; if(!d||!cfg) return;
   document.getElementById('ai-title').textContent=cfg.title;
   document.getElementById('ai-body').innerHTML=[100,80,93,66,88].map(w=>`<div class="ai-skel" style="width:${w}%"></div>`).join('');
-  const prompt=cfg.prompt(d,S.siteName);
   try{
-    let text='';
-    if(AI.provider==='claude'){
-      const key=AI.claudeKey;
-      if(!key) throw new Error('กรุณาใส่ Claude API Key ใน Settings ก่อนครับ');
-      const r=await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-      });
-      const j=await r.json();
-      if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
-      text=j.content?.[0]?.text||'';
-    } else if(AI.provider==='gemini'){
-      const key=AI.geminiKey;
-      if(!key) throw new Error('กรุณาใส่ Gemini API Key ใน Settings ก่อนครับ');
-      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1000}})
-      });
-      const j=await r.json();
-      if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
-      text=j.candidates?.[0]?.content?.parts?.[0]?.text||'';
-    } else if(AI.provider==='openai'){
-      const key=AI.openaiKey;
-      if(!key) throw new Error('กรุณาใส่ OpenAI API Key ใน Settings ก่อนครับ');
-      const r=await fetch('https://api.openai.com/v1/chat/completions',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},
-        body:JSON.stringify({model:'gpt-4o',max_tokens:1000,messages:[{role:'user',content:prompt}]})
-      });
-      const j=await r.json();
-      if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
-      text=j.choices?.[0]?.message?.content||'';
-    }
+    const text = await callAI(cfg.prompt(d,S.siteName));
     document.getElementById('ai-body').textContent=text||'ไม่ได้รับผลลัพธ์จาก AI';
   }catch(e){
-    document.getElementById('ai-body').innerHTML=`<div class="ai-error">❌ ${e.message}<br><br>ตรวจสอบ API Key ใน <strong>Settings</strong> (ปุ่มบน AI panel)</div>`;
+    document.getElementById('ai-body').innerHTML=`<div class="ai-error">❌ ${e.message}<br><br>ตรวจสอบ API Key ใน <strong>Settings</strong></div>`;
   }
 }
 
@@ -1218,17 +1428,607 @@ function setMode(m){
   document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('on'));
   document.getElementById(`tab-${m}`).classList.add('on');
 
-  const isRT = m === 'realtime';
-  document.getElementById('export-area').style.display = isRT ? 'none' : '';
-  document.getElementById('rt-content').style.display  = isRT ? '' : 'none';
-  document.getElementById('date-bar').style.display    = isRT ? 'none' : '';
+  const panels = ['export-area','rt-content','jobs-content','weekly-content','geo-content'];
+  panels.forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
 
-  if(isRT){
-    startRealtime();
-  } else {
-    stopRealtime();
-    if(S.data) runAI();
+  const isRT = m==='realtime', isJobs = m==='jobs';
+  const isWeekly = m==='weekly', isGeo = m==='geo';
+  const isMain = !isRT && !isJobs && !isWeekly && !isGeo;
+
+  if(isMain)    document.getElementById('export-area').style.display='';
+  if(isRT)      document.getElementById('rt-content').style.display='';
+  if(isJobs)    document.getElementById('jobs-content').style.display='';
+  if(isWeekly)  document.getElementById('weekly-content').style.display='';
+  if(isGeo)     document.getElementById('geo-content').style.display='';
+  document.getElementById('date-bar').style.display = isRT ? 'none' : '';
+
+  if(isRT)       { startRealtime(); }
+  else           { stopRealtime(); }
+  if(isJobs)     { loadJobs(); }
+  if(isWeekly)   { loadWeekly(); }
+  if(isGeo)      { loadGeo(); }
+  if(isMain && S.data) { runAI(); }
+}
+
+// ══ PROACTIVE ALERTS ══
+async function runAlerts(){
+  const d = S.data; if(!d) return;
+  const panel = document.getElementById('alert-panel');
+  const list  = document.getElementById('alert-list');
+  panel.style.display = '';
+  list.innerHTML = '<div class="skel" style="height:56px;border-radius:10px;"></div>';
+
+  const alerts = [];
+
+  // 1. Sessions ลดผิดปกติ
+  if(d.pv_delta <= -20){
+    alerts.push({type:'critical', icon:'📉', title:`Pageviews ลด ${Math.abs(d.pv_delta)}% vs ช่วงก่อน`,
+      desc:`จาก ${fmt(d.pv)} — ลดลงมากผิดปกติ อาจเกิดจาก algorithm update หรือ paid campaign หมดงบ`,
+      action:'ตรวจสอบ: Google Search Console + paid campaigns ทันที'});
+  } else if(d.pv_delta <= -10){
+    alerts.push({type:'warning', icon:'⚠️', title:`Pageviews ลด ${Math.abs(d.pv_delta)}% — ควรติดตาม`,
+      desc:`trend กำลังลง ยังไม่วิกฤต แต่ควร monitor ต่อเนื่อง`,
+      action:'ดู traffic source ว่า channel ไหนลดมากที่สุด'});
   }
+
+  // 2. Bounce Rate สูง
+  if(d.br >= 70){
+    alerts.push({type:'critical', icon:'↩️', title:`Bounce Rate ${d.br}% — สูงมาก`,
+      desc:`เกิน 70% แปลว่าคนเข้ามาแล้วออกโดยไม่ interact — อาจมีปัญหา UX, page speed หรือ content ไม่ตรงกลุ่ม`,
+      action:'ตรวจสอบ: Core Web Vitals + mobile experience'});
+  } else if(d.br >= 60){
+    alerts.push({type:'warning', icon:'↩️', title:`Bounce Rate ${d.br}% — สูงกว่า benchmark`,
+      desc:`ค่าเฉลี่ย media site ควรอยู่ที่ 45–60% พิจารณาปรับ layout หรือ internal linking`,
+      action:'A/B test related articles section'});
+  }
+
+  // 3. Users ลด
+  if(d.us_delta <= -15){
+    alerts.push({type:'warning', icon:'👤', title:`Unique Users ลด ${Math.abs(d.us_delta)}%`,
+      desc:`ฐาน audience กำลังหดตัว ควรดู channel ที่ users มาจากมากที่สุดว่าลดตัวไหน`,
+      action:'เพิ่ม social distribution + email newsletter'});
+  }
+
+  // 4. ดีกว่า benchmark
+  if(d.pv_delta >= 20){
+    alerts.push({type:'good', icon:'🚀', title:`Pageviews เพิ่ม ${d.pv_delta}% — เติบโตดีมาก!`,
+      desc:`สูงกว่า benchmark media site ทั่วไป (+20%) หา content ที่ทำให้ traffic พุ่งแล้วทำซ้ำ`,
+      action:'ดู top articles สัปดาห์นี้ว่า piece ไหน drive traffic มากที่สุด'});
+  }
+
+  if(d.br <= 45){
+    alerts.push({type:'good', icon:'✅', title:`Bounce Rate ${d.br}% — ดีกว่า benchmark`,
+      desc:`ต่ำกว่าค่าเฉลี่ย media site แสดงว่า content engagement ดีมาก`,
+      action:'ใช้ layout นี้เป็น template สำหรับ content ใหม่'});
+  }
+
+  if(alerts.length === 0){
+    alerts.push({type:'good', icon:'✓', title:'ทุกตัวชี้วัดปกติ', desc:'ไม่พบ anomaly ใน period นี้ — dashboard สีเขียวทั้งหมด', action:''});
+  }
+
+  // Update badge
+  const critCount = alerts.filter(a=>a.type==='critical').length;
+  const badge = document.getElementById('alert-count-badge');
+  if(critCount > 0){ badge.textContent=`${critCount} critical`; badge.style.display='inline'; }
+  else { badge.style.display='none'; }
+
+  list.innerHTML = alerts.map(a => `
+    <div class="alert-card ${a.type}">
+      <div class="alert-icon">${a.icon}</div>
+      <div style="flex:1;">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-desc">${a.desc}</div>
+        ${a.action?`<div class="alert-action">→ ${a.action}</div>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ══ WEEKLY DIGEST ══
+let weeklyChart = null;
+async function loadWeekly(){
+  showLoad('กำลังดึงข้อมูล Weekly...');
+  try{
+    const [thisWeek, lastWeek, pages] = await Promise.all([
+      ga4(['screenPageViews','activeUsers','sessions','bounceRate'], null, '7daysAgo', 'today'),
+      ga4(['screenPageViews','activeUsers','sessions','bounceRate'], null, '14daysAgo', '8daysAgo'),
+      ga4(['screenPageViews','activeUsers'],['pagePath'], '7daysAgo', 'today'),
+    ]);
+
+    const tw = thisWeek.rows?.[0]||{}, lw = lastWeek.rows?.[0]||{};
+    const twPV=gv(tw,0),lwPV=gv(lw,0);
+    const twU=gv(tw,1),lwU=gv(lw,1);
+    const twS=gv(tw,2),lwS=gv(lw,2);
+    const twBR=Math.round(gv(tw,3)*10000)/100, lwBR=Math.round(gv(lw,3)*10000)/100;
+    const dp=v=>v>=0?`<span class="pos">↑${Math.abs(v)}%</span>`:`<span class="neg">↓${Math.abs(v)}%</span>`;
+
+    document.getElementById('weekly-kpi').innerHTML=[
+      {label:'Pageviews (7 วัน)',   val:fmt(twPV), delta:delt(twPV,lwPV),  color:'var(--blue)'},
+      {label:'Unique Users (7 วัน)',val:fmt(twU),  delta:delt(twU,lwU),    color:'var(--green)'},
+      {label:'Sessions (7 วัน)',    val:fmt(twS),  delta:delt(twS,lwS),    color:'var(--purple)'},
+      {label:'Bounce Rate (7 วัน)', val:`${twBR}%`,delta:delt(lwBR,twBR),  color:twBR<60?'var(--green)':twBR<70?'var(--amber)':'var(--red)'},
+    ].map(k=>`<div class="job-kpi" style="border-top:2px solid ${k.color};">
+      <div class="job-kpi-label">${k.label}</div>
+      <div class="job-kpi-val" style="color:${k.color};">${k.val}</div>
+      <div class="job-kpi-sub">${dp(k.delta)} vs สัปดาห์ก่อน</div>
+    </div>`).join('');
+
+    // Weekly comparison chart
+    if(weeklyChart){ weeklyChart.destroy(); weeklyChart=null; }
+    const cats=['Pageviews','Users','Sessions'];
+    const twVals=[twPV,twU,twS], lwVals=[lwPV,lwU,lwS];
+    weeklyChart = new Chart(document.getElementById('weeklyChart'),{
+      type:'bar',
+      data:{
+        labels:cats,
+        datasets:[
+          {label:'This Week', data:twVals, backgroundColor:'rgba(0,102,204,.75)', borderRadius:5},
+          {label:'Last Week', data:lwVals, backgroundColor:'rgba(0,102,204,.2)',  borderRadius:5},
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{font:{size:11},padding:12}}},
+        scales:{x:{grid:{display:false},ticks:{color:'#aeaeb2',font:{size:11}}},
+                y:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}}}
+      }
+    });
+
+    // Top pages this week
+    const topPages = (pages.rows||[]).slice(0,6);
+    const maxPV = gv(topPages[0],0)||1;
+    document.getElementById('weekly-pages').innerHTML = topPages.map(r=>`
+      <div class="trow" style="cursor:default;">
+        <span class="trow-label" style="font-family:var(--mono);font-size:11px;">${dv(r,0).length>45?dv(r,0).slice(0,42)+'...':dv(r,0)}</span>
+        <div class="trow-bar"><div class="trow-fill" style="width:${(gv(r,0)/maxPV)*100}%;background:var(--green);"></div></div>
+        <div class="trow-valwrap"><span class="trow-val">${fmt(gv(r,0))}</span></div>
+      </div>`).join('');
+
+    // AI weekly summary
+    runWeeklyAI({twPV,lwPV,twU,lwU,twS,lwS,twBR,lwBR,topPages});
+    document.getElementById('weekly-footer-r').textContent=`Updated ${new Date().toLocaleString('th-TH')}`;
+  } catch(e){ showErr('Weekly: '+e.message); }
+  finally{ hideLoad(); }
+}
+
+async function runWeeklyAI(d){
+  if(!d) return;
+  const el = document.getElementById('weekly-ai-body');
+  el.innerHTML = [100,80,90,65].map(w=>`<div class="ai-skel" style="width:${w}%"></div>`).join('');
+  const prompt=`คุณคือ Digital Analyst ช่วยสรุป Weekly Performance ให้ AE ตอบภาษาไทย
+ข้อมูล ${S.siteName}:
+สัปดาห์นี้: PV ${fmt(d.twPV)}, Users ${fmt(d.twU)}, Sessions ${fmt(d.twS)}, Bounce ${d.twBR}%
+สัปดาห์ก่อน: PV ${fmt(d.lwPV)}, Users ${fmt(d.lwU)}, Sessions ${fmt(d.lwS)}, Bounce ${d.lwBR}%
+เปลี่ยนแปลง: PV ${delt(d.twPV,d.lwPV)>0?'+':''}${delt(d.twPV,d.lwPV)}%, Users ${delt(d.twU,d.lwU)>0?'+':''}${delt(d.twU,d.lwU)}%
+
+Format:
+📊 สรุปสัปดาห์นี้: [1-2 ประโยค]
+✅ จุดเด่น: ...
+⚠️ ต้องปรับ: ...
+🚀 Action สัปดาห์หน้า:
+1. ...
+2. ...`;
+  try{
+    const text = await callAI(prompt);
+    el.textContent = text;
+  } catch(e){ el.innerHTML=`<div class="ai-error">❌ ${e.message}</div>`; }
+}
+
+// ══ GEO & AIO ══
+let geoTab = 'geo';
+function setGeoTab(t){
+  geoTab = t;
+  document.querySelectorAll('.job-tab[id^="gtab"]').forEach(b=>b.classList.remove('on'));
+  document.getElementById(`gtab-${t}`).classList.add('on');
+  document.getElementById('gpanel-geo').style.display = t==='geo' ? '' : 'none';
+  document.getElementById('gpanel-aio').style.display = t==='aio' ? '' : 'none';
+}
+
+async function loadGeo(){
+  showLoad('กำลังดึงข้อมูล GEO & AIO...');
+  try{
+    const [orgCity, intlCountry, langCh, aioPages] = await Promise.all([
+      ga4(['sessions'],['city','sessionDefaultChannelGrouping']),
+      ga4(['sessions','activeUsers'],['country']),
+      ga4(['sessions'],['language','sessionDefaultChannelGrouping']),
+      ga4(['screenPageViews','activeUsers','bounceRate','averageSessionDuration'],['pagePath']),
+    ]);
+
+    // GEO: organic city
+    const orgCityRows = (orgCity.rows||[]).filter(r=>dv(r,1)==='Organic Search').slice(0,7);
+    const mxOC = Math.max(...orgCityRows.map(r=>gv(r,0)),1);
+    document.getElementById('geo-org-city').innerHTML = orgCityRows.map(r=>`
+      <div class="trow" style="cursor:default;">
+        <span class="trow-label">${dv(r,0)||'Unknown'}</span>
+        <div class="trow-bar"><div class="trow-fill" style="width:${(gv(r,0)/mxOC)*100}%;background:var(--green);"></div></div>
+        <div class="trow-valwrap"><span class="trow-val">${fmt(gv(r,0))}</span></div>
+      </div>`).join('');
+
+    // GEO: international (non-Thailand)
+    const intlRows = (intlCountry.rows||[]).filter(r=>dv(r,0)!=='Thailand').slice(0,6);
+    const mxI = Math.max(...intlRows.map(r=>gv(r,0)),1);
+    document.getElementById('geo-intl').innerHTML = intlRows.map(r=>`
+      <div class="trow" style="cursor:default;">
+        <span class="trow-label">${dv(r,0)}</span>
+        <div class="trow-bar"><div class="trow-fill" style="width:${(gv(r,0)/mxI)*100}%;background:var(--blue);"></div></div>
+        <div class="trow-valwrap"><span class="trow-val">${fmt(gv(r,0))}</span></div>
+      </div>`).join('');
+
+    // GEO: lang x channel
+    const langMap={};
+    (langCh.rows||[]).forEach(r=>{
+      const k=dv(r,0); if(!langMap[k]) langMap[k]={};
+      langMap[k][dv(r,1)]=(langMap[k][dv(r,1)]||0)+gv(r,0);
+    });
+    const topLangs = Object.entries(langMap).map(([l,chs])=>({lang:l,total:Object.values(chs).reduce((a,b)=>a+b,0),chs})).sort((a,b)=>b.total-a.total).slice(0,5);
+    const mxL2 = topLangs[0]?.total||1;
+    document.getElementById('geo-lang-ch').innerHTML = topLangs.map(({lang,total})=>`
+      <div class="trow" style="cursor:default;">
+        <span class="trow-label">${lang||'Unknown'}</span>
+        <div class="trow-bar"><div class="trow-fill" style="width:${(total/mxL2)*100}%;background:var(--teal);"></div></div>
+        <div class="trow-valwrap"><span class="trow-val">${fmt(total)}</span></div>
+      </div>`).join('');
+
+    // GEO KPI
+    const totalIntl = intlRows.reduce((s,r)=>s+gv(r,0),0);
+    const totalAll  = (intlCountry.rows||[]).reduce((s,r)=>s+gv(r,0),0)||1;
+    document.getElementById('geo-kpi').innerHTML=[
+      {label:'Top Organic City',    val:orgCityRows[0]?dv(orgCityRows[0],0):'—',  sub:'Most organic traffic',   color:'var(--green)'},
+      {label:'International Users', val:`${Math.round((totalIntl/totalAll)*100)}%`, sub:`${fmt(totalIntl)} users`,color:'var(--blue)'},
+      {label:'Top Int\'l Country',  val:intlRows[0]?dv(intlRows[0],0):'—',        sub:fmt(gv(intlRows[0],0)),   color:'var(--teal)'},
+    ].map(k=>`<div class="job-kpi" style="border-top:2px solid ${k.color};">
+      <div class="job-kpi-label">${k.label}</div>
+      <div class="job-kpi-val" style="color:${k.color};font-size:18px;">${k.val}</div>
+      <div class="job-kpi-sub">${k.sub}</div>
+    </div>`).join('');
+
+    // AIO: score = (time*0.4 + organic_rate*0.4 + (1-bounce)*0.2) normalized
+    const aioRows = (aioPages.rows||[]).filter(r=>gv(r,0)>=100); // min 100 views
+    const scored = aioRows.map(r=>({
+      path:dv(r,0), views:gv(r,0), users:gv(r,1),
+      bounce:gv(r,2), dur:gv(r,3),
+      score: Math.round(Math.min(100, (gv(r,3)/300)*40 + (1-gv(r,2))*40 + Math.min(20, gv(r,0)/500)))
+    })).sort((a,b)=>b.score-a.score).slice(0,10);
+
+    const avgScore = scored.length ? Math.round(scored.reduce((s,r)=>s+r.score,0)/scored.length) : 0;
+    const highAIO  = scored.filter(r=>r.score>=70).length;
+
+    document.getElementById('aio-kpi').innerHTML=[
+      {label:'Avg AIO Score',    val:`${avgScore}/100`, sub:'ค่าเฉลี่ยทุก content',    color:'var(--purple)'},
+      {label:'High AIO Content', val:highAIO,           sub:'score ≥ 70 (AI-ready)',   color:'var(--blue)'},
+      {label:'Top AIO Score',    val:`${scored[0]?.score||0}/100`, sub:scored[0]?.path?.split('/').pop()?.slice(0,18)||'—', color:'var(--green)'},
+    ].map(k=>`<div class="job-kpi" style="border-top:2px solid ${k.color};">
+      <div class="job-kpi-label">${k.label}</div>
+      <div class="job-kpi-val" style="color:${k.color};">${k.val}</div>
+      <div class="job-kpi-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k.sub}</div>
+    </div>`).join('');
+
+    // AIO table
+    document.getElementById('aio-table').innerHTML=`
+      <div class="job-row-head">
+        <span>Page / Article</span><span style="text-align:right;">AIO Score</span><span style="text-align:right;">Avg Duration</span><span style="text-align:right;">Bounce</span>
+      </div>`+scored.map(r=>{
+        const sc=r.score, color=sc>=70?'#1a7f37':sc>=50?'var(--amber)':'var(--red)';
+        return `<div class="job-row">
+          <span class="job-cell-label" title="${r.path}">${r.path.length>55?r.path.slice(0,52)+'...':r.path}</span>
+          <span class="job-cell" style="color:${color};font-weight:600;">${sc}/100</span>
+          <span class="job-cell">${fmtDur(Math.round(r.dur))}</span>
+          <span class="job-cell" style="color:${r.bounce<0.55?'#1a7f37':r.bounce<0.70?'var(--amber)':'var(--red)'};">${Math.round(r.bounce*100)}%</span>
+        </div>`;
+      }).join('');
+
+    document.getElementById('geo-footer-r').textContent=`Updated ${new Date().toLocaleString('th-TH')}`;
+  } catch(e){ showErr('GEO: '+e.message); }
+  finally{ hideLoad(); }
+}
+
+async function runAIOAdvisor(){
+  const el = document.getElementById('aio-ai-body');
+  el.innerHTML=[100,80,90].map(w=>`<div class="ai-skel" style="width:${w}%"></div>`).join('');
+  const prompt=`คุณคือ AIO (AI-Optimized Content) Strategist ตอบภาษาไทย
+เว็บไซต์: ${S.siteName}
+วิเคราะห์ว่า content ควรปรับอย่างไรให้ AI search engine (ChatGPT, Gemini, Perplexity) หยิบไปใช้มากขึ้น
+และแนะนำ content strategy สำหรับ GEO (Generative Engine Optimization)
+Format:
+🤖 AIO Overview: [สถานะ content ปัจจุบัน]
+📝 สิ่งที่ต้องปรับ:
+• Structure: ...
+• Depth: ...
+• Format: ...
+💡 Content Topics แนะนำสำหรับ AI Search:
+1. ...
+2. ...
+3. ...
+🚀 Quick Wins:
+• ...`;
+  try{
+    const text = await callAI(prompt);
+    el.textContent = text;
+  } catch(e){ el.innerHTML=`<div class="ai-error">❌ ${e.message}</div>`; }
+}
+
+// ══ SHARED AI CALLER ══
+async function callAI(prompt){
+  if(AI.provider==='claude'){
+    if(!AI.claudeKey) throw new Error('กรุณาใส่ Claude API Key ใน Settings');
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AI.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})
+    });
+    const j=await r.json(); if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
+    return j.content?.[0]?.text||'';
+  } else if(AI.provider==='gemini'){
+    if(!AI.geminiKey) throw new Error('กรุณาใส่ Gemini API Key ใน Settings');
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AI.geminiKey}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:800}})
+    });
+    const j=await r.json(); if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
+    return j.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  } else if(AI.provider==='openai'){
+    if(!AI.openaiKey) throw new Error('กรุณาใส่ OpenAI API Key ใน Settings');
+    const r=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${AI.openaiKey}`},
+      body:JSON.stringify({model:'gpt-4o',max_tokens:800,messages:[{role:'user',content:prompt}]})
+    });
+    const j=await r.json(); if(!r.ok) throw new Error(j.error?.message||`HTTP ${r.status}`);
+    return j.choices?.[0]?.message?.content||'';
+  }
+  throw new Error('ไม่ได้เลือก AI provider');
+}
+
+// ══ JOBS ══
+let J = { jobTab:'campaign', campaignChart:null, seoChart:null, data:null };
+
+function setJobTab(t){
+  J.jobTab = t;
+  document.querySelectorAll('.job-tab').forEach(b => b.classList.remove('on'));
+  document.getElementById(`jtab-${t}`).classList.add('on');
+  ['campaign','content','seo'].forEach(p => {
+    document.getElementById(`jpanel-${p}`).style.display = p===t ? '' : 'none';
+  });
+  if(J.data) renderJobs();
+}
+
+async function loadJobs(){
+  showLoad('กำลังดึงข้อมูล Jobs...');
+  try{
+    const [paidSess, paidTrend, allPages, allPagesDur, organicPages, organicTrend, organicLang] = await Promise.all([
+      // Paid: sessions by channel
+      ga4(['sessions','conversions'],['sessionDefaultChannelGrouping']),
+      // Paid: trend by date
+      ga4(['sessions'],['date','sessionDefaultChannelGrouping']),
+      // Content: top pages views + users
+      ga4(['screenPageViews','activeUsers'],['pagePath']),
+      // Content: avg duration per page
+      ga4(['averageSessionDuration'],['pagePath']),
+      // SEO: top organic pages
+      ga4(['sessions','activeUsers','bounceRate'],['pagePath','sessionDefaultChannelGrouping']),
+      // SEO: organic sessions trend
+      ga4(['sessions'],['date','sessionDefaultChannelGrouping']),
+      // SEO: organic by language
+      ga4(['sessions'],['language','sessionDefaultChannelGrouping']),
+    ]);
+
+    // Parse paid channels
+    const paidChannels = ['Paid Search','Paid Social','Display','Paid Other'];
+    const channelRows  = paidSess.rows || [];
+    const paid = channelRows.filter(r => paidChannels.some(p => dv(r,0).includes(p.split(' ')[1]) || dv(r,0).toLowerCase().includes('paid')));
+    const totalPaid    = paid.reduce((s,r) => s+gv(r,0), 0);
+    const totalPaidCV  = paid.reduce((s,r) => s+gv(r,1), 0);
+    const paidCVR      = totalPaid > 0 ? Math.round((totalPaidCV/totalPaid)*10000)/100 : 0;
+
+    // Trend data — paid only
+    const trendMap = {};
+    (paidTrend.rows||[]).forEach(r => {
+      const date = dv(r,0), ch = dv(r,1), val = gv(r,0);
+      if(ch.toLowerCase().includes('paid') || ch.includes('Display')){
+        trendMap[date] = (trendMap[date]||0) + val;
+      }
+    });
+    const trendDates = Object.keys(trendMap).sort().slice(-14);
+
+    // Paid landing pages
+    const paidPages = (organicPages.rows||[]).filter(r => {
+      const ch = dv(r,1);
+      return ch.toLowerCase().includes('paid') || ch.includes('Display');
+    }).slice(0,10);
+
+    // Content: merge views + duration
+    const durMap = {};
+    (allPagesDur.rows||[]).forEach(r => { durMap[dv(r,0)] = gv(r,0); });
+    const contentPages = (allPages.rows||[]).slice(0,20).map(r => ({
+      path:  dv(r,0),
+      views: gv(r,0),
+      users: gv(r,1),
+      dur:   durMap[dv(r,0)] || 0,
+    }));
+
+    // SEO: organic only
+    const organicRows = (organicPages.rows||[]).filter(r => dv(r,1) === 'Organic Search');
+    const organicTrendMap = {};
+    (organicTrend.rows||[]).forEach(r => {
+      if(dv(r,1) === 'Organic Search') organicTrendMap[dv(r,0)] = (organicTrendMap[dv(r,0)]||0)+gv(r,0);
+    });
+    const organicTrendDates = Object.keys(organicTrendMap).sort().slice(-14);
+    const totalOrganic = organicRows.reduce((s,r)=>s+gv(r,0),0);
+    const avgOrgBounce = organicRows.length ? Math.round(organicRows.reduce((s,r)=>s+gv(r,2),0)/organicRows.length*100)/100 : 0;
+    const organicLangRows = (organicLang.rows||[]).filter(r => dv(r,1)==='Organic Search').slice(0,5);
+
+    J.data = {
+      paid, totalPaid, totalPaidCV, paidCVR,
+      trendDates, trendMap,
+      paidPages,
+      channelRows,
+      contentPages,
+      organicRows: organicRows.slice(0,15),
+      organicTrendDates, organicTrendMap,
+      totalOrganic, avgOrgBounce,
+      organicLangRows,
+    };
+
+    renderJobs();
+    document.getElementById('jobs-footer-r').textContent = `Updated ${new Date().toLocaleString('th-TH')}`;
+  } catch(e){
+    showErr('Jobs: '+e.message);
+  } finally {
+    hideLoad();
+  }
+}
+
+function renderJobs(){
+  const d = J.data; if(!d) return;
+  if(J.jobTab === 'campaign') renderCampaignTab(d);
+  if(J.jobTab === 'content')  renderContentTab();
+  if(J.jobTab === 'seo')      renderSEOTab(d);
+}
+
+function renderCampaignTab(d){
+  // KPIs
+  const paidCh = d.channelRows.filter(r => dv(r,0).toLowerCase().includes('paid') || dv(r,0).includes('Display'));
+  document.getElementById('job-campaign-kpi').innerHTML = [
+    {label:'Paid Sessions',   val:fmt(d.totalPaid),   sub:'ทุก paid channel',        color:'var(--blue)'},
+    {label:'Paid Conversions',val:fmt(d.totalPaidCV), sub:'จาก paid traffic',        color:'var(--green)'},
+    {label:'Paid CVR',        val:`${d.paidCVR}%`,    sub:'Conversion rate (paid)',  color:'var(--amber)'},
+    {label:'Paid Channels',   val:paidCh.length,      sub:'ที่มี traffic',            color:'var(--purple)'},
+  ].map(k=>`<div class="job-kpi" style="border-top:2px solid ${k.color};">
+    <div class="job-kpi-label">${k.label}</div>
+    <div class="job-kpi-val" style="color:${k.color};">${k.val}</div>
+    <div class="job-kpi-sub">${k.sub}</div>
+  </div>`).join('');
+
+  // Trend chart
+  if(J.campaignChart){ J.campaignChart.destroy(); J.campaignChart=null; }
+  J.campaignChart = new Chart(document.getElementById('campaignChart'),{
+    type:'bar',
+    data:{
+      labels: d.trendDates.map(s => s.length===8?`${s.slice(4,6)}/${s.slice(6,8)}`:s),
+      datasets:[{
+        data: d.trendDates.map(k => d.trendMap[k]||0),
+        backgroundColor:'rgba(0,102,204,.18)',borderColor:'#0066cc',borderWidth:1.5,borderRadius:4,
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{display:false},ticks:{color:'#aeaeb2',font:{size:10},maxTicksLimit:7,autoSkip:true}},
+              y:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}}}}
+  });
+
+  // Channel list
+  const mxCh = Math.max(...d.channelRows.map(r=>gv(r,0)),1);
+  document.getElementById('job-channel-list').innerHTML = d.channelRows.slice(0,6).map(r=>`
+    <div class="trow" style="cursor:default;">
+      <span class="trow-label">${dv(r,0)||'Other'}</span>
+      <div class="trow-bar"><div class="trow-fill" style="width:${(gv(r,0)/mxCh)*100}%;background:var(--blue);"></div></div>
+      <div class="trow-valwrap"><span class="trow-val">${fmt(gv(r,0))}</span></div>
+    </div>`).join('');
+
+  // Paid pages table
+  const allRows = d.channelRows;
+  document.getElementById('job-campaign-pages').innerHTML = `
+    <div class="job-row-head">
+      <span>Landing Page</span><span style="text-align:right;">Sessions</span><span style="text-align:right;">Conversions</span><span style="text-align:right;">CVR</span>
+    </div>` + (d.paidPages.length ? d.paidPages.map(r=>{
+      const s=gv(r,0), cv=gv(r,1), cvr=s>0?Math.round((cv/s)*10000)/100:0;
+      return `<div class="job-row">
+        <span class="job-cell-label" title="${dv(r,0)}">${dv(r,0).length>55?dv(r,0).slice(0,52)+'...':dv(r,0)}</span>
+        <span class="job-cell">${fmt(s)}</span>
+        <span class="job-cell">${fmt(cv)}</span>
+        <span class="job-cell" style="color:${cvr>=3?'#1a7f37':cvr>=1?'#ff9500':'#ff3b30'};">${cvr}%</span>
+      </div>`;
+    }).join('') : '<div style="padding:16px;font-size:13px;color:var(--ink3);">ไม่พบ paid traffic — ตรวจสอบ UTM parameters ใน GA4 ครับ</div>');
+}
+
+function renderContentTab(){
+  const d = J.data; if(!d) return;
+  const sort = document.getElementById('content-sort')?.value || 'views';
+  const pages = [...d.contentPages].sort((a,b) => b[sort==='views'?'views':sort==='dur'?'dur':'users'] - a[sort==='views'?'views':sort==='dur'?'dur':'users']);
+  const total = pages.reduce((s,p)=>s+p.views,0)||1;
+  const avgDur = pages.length ? pages.reduce((s,p)=>s+p.dur,0)/pages.length : 0;
+
+  document.getElementById('job-content-kpi').innerHTML = [
+    {label:'Total Articles Tracked', val:pages.length,       sub:'ใน top pages',          color:'var(--amber)'},
+    {label:'Total Pageviews',        val:fmt(total),          sub:'รวมทุก content',         color:'var(--blue)'},
+    {label:'Avg. Duration',          val:fmtDur(Math.round(avgDur)), sub:'เฉลี่ยทุกบทความ',color:'var(--teal)'},
+    {label:'Top Article',            val:fmt(pages[0]?.views||0), sub:pages[0]?.path?.split('/').pop()?.slice(0,20)||'—', color:'var(--green)'},
+  ].map(k=>`<div class="job-kpi" style="border-top:2px solid ${k.color};">
+    <div class="job-kpi-label">${k.label}</div>
+    <div class="job-kpi-val" style="color:${k.color};">${k.val}</div>
+    <div class="job-kpi-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k.sub}</div>
+  </div>`).join('');
+
+  document.getElementById('job-content-table').innerHTML = `
+    <div class="job-row-head">
+      <span>Page / Article</span><span style="text-align:right;">Pageviews</span><span style="text-align:right;">Users</span><span style="text-align:right;">Avg Duration</span>
+    </div>` + pages.map(p=>`
+    <div class="job-row">
+      <span class="job-cell-label" title="${p.path}">${p.path.length>55?p.path.slice(0,52)+'...':p.path}</span>
+      <span class="job-cell">${fmt(p.views)}</span>
+      <span class="job-cell">${fmt(p.users)}</span>
+      <span class="job-cell">${fmtDur(Math.round(p.dur))}</span>
+    </div>`).join('');
+}
+
+function renderSEOTab(d){
+  document.getElementById('job-seo-kpi').innerHTML = [
+    {label:'Organic Sessions', val:fmt(d.totalOrganic), sub:'ช่วงที่เลือก',              color:'var(--green)'},
+    {label:'Top Organic Pages', val:d.organicRows.length, sub:'ที่มี organic traffic',   color:'var(--teal)'},
+    {label:'Avg Bounce Rate',   val:`${d.avgOrgBounce}%`, sub:'Organic traffic เท่านั้น',color:d.avgOrgBounce<55?'var(--green)':d.avgOrgBounce<70?'var(--amber)':'var(--red)'},
+  ].map(k=>`<div class="job-kpi" style="border-top:2px solid ${k.color};">
+    <div class="job-kpi-label">${k.label}</div>
+    <div class="job-kpi-val" style="color:${k.color};">${k.val}</div>
+    <div class="job-kpi-sub">${k.sub}</div>
+  </div>`).join('');
+
+  // SEO trend chart
+  if(J.seoChart){ J.seoChart.destroy(); J.seoChart=null; }
+  J.seoChart = new Chart(document.getElementById('seoChart'),{
+    type:'line',
+    data:{
+      labels: d.organicTrendDates.map(s => s.length===8?`${s.slice(4,6)}/${s.slice(6,8)}`:s),
+      datasets:[{
+        data: d.organicTrendDates.map(k => d.organicTrendMap[k]||0),
+        borderColor:'#34c759', backgroundColor:'rgba(52,199,89,.07)',
+        borderWidth:1.5, pointRadius:2.5, pointBackgroundColor:'#34c759', fill:true, tension:.4,
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10},maxTicksLimit:7,autoSkip:true}},
+              y:{grid:{color:'#f0f0f5'},ticks:{color:'#aeaeb2',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}}}}
+  });
+
+  // Organic by language
+  const mxL = Math.max(...d.organicLangRows.map(r=>gv(r,0)),1);
+  document.getElementById('job-seo-lang').innerHTML = d.organicLangRows.length ? d.organicLangRows.map(r=>`
+    <div class="trow" style="cursor:default;">
+      <span class="trow-label">${dv(r,0)||'Unknown'}</span>
+      <div class="trow-bar"><div class="trow-fill" style="width:${(gv(r,0)/mxL)*100}%;background:var(--green);"></div></div>
+      <div class="trow-valwrap"><span class="trow-val">${fmt(gv(r,0))}</span></div>
+    </div>`).join('')
+    : '<div style="padding:8px;font-size:13px;color:var(--ink3);">ไม่มีข้อมูล</div>';
+
+  // Organic pages table
+  document.getElementById('job-seo-pages').innerHTML = `
+    <div class="job-row-head">
+      <span>Landing Page</span><span style="text-align:right;">Sessions</span><span style="text-align:right;">Users</span><span style="text-align:right;">Bounce</span>
+    </div>` + d.organicRows.map(r=>{
+      const br = Math.round(gv(r,2)*10000)/100;
+      return `<div class="job-row">
+        <span class="job-cell-label" title="${dv(r,0)}">${dv(r,0).length>55?dv(r,0).slice(0,52)+'...':dv(r,0)}</span>
+        <span class="job-cell">${fmt(gv(r,0))}</span>
+        <span class="job-cell">${fmt(gv(r,1))}</span>
+        <span class="job-cell" style="color:${br<55?'#1a7f37':br<70?'#ff9500':'#ff3b30'};">${br}%</span>
+      </div>`;
+    }).join('');
+}
+
+function filterJobTable(id, q){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const lq = q.toLowerCase();
+  el.querySelectorAll('.job-row').forEach(r => {
+    const label = r.querySelector('.job-cell-label')?.textContent || '';
+    r.style.display = (!q || label.toLowerCase().includes(lq)) ? '' : 'none';
+  });
 }
 
 function startRealtime(){
@@ -1389,6 +2189,9 @@ function connect(){
   document.getElementById('topbar-site').textContent=S.siteName;
   // ensure correct initial state
   document.getElementById('rt-content').style.display='none';
+  document.getElementById('jobs-content').style.display='none';
+  document.getElementById('weekly-content').style.display='none';
+  document.getElementById('geo-content').style.display='none';
   document.getElementById('export-area').style.display='';
   document.getElementById('date-bar').style.display='';
   // sync AI provider label
