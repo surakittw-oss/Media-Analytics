@@ -1208,8 +1208,9 @@ function updateDateInfo(){
 
 async function fetchRT(){
   try{
+    const token = await getValidToken();
     const r=await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${S.propId}:runRealtimeReport`,{
-      method:'POST',headers:{Authorization:`Bearer ${S.token}`,'Content-Type':'application/json'},
+      method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
       body:JSON.stringify({metrics:[{name:'activeUsers'}]})
     });
     if(!r.ok) return;
@@ -1597,6 +1598,7 @@ function setMode(m){
 
   if(isRT)       { startRealtime(); }
   else           { stopRealtime(); }
+  if(!S.token)   { return; } // ยังไม่มี token — รอ connect ก่อน
   if(isJobs)     { loadJobs(); }
   if(isWeekly)   { loadWeekly(); }
   if(isGeo)      { loadGeo(); }
@@ -1679,6 +1681,7 @@ async function runAlerts(){
 // ══ WEEKLY DIGEST ══
 let weeklyChart = null;
 async function loadWeekly(){
+  if(!S.propId || !S.token){ showErr('กรุณา Connect ก่อนครับ'); return; }
   showLoad('กำลังดึงข้อมูล Weekly...');
   try{
     const [thisWeek, lastWeek, pages] = await Promise.all([
@@ -1777,6 +1780,7 @@ function setGeoTab(t){
 }
 
 async function loadGeo(){
+  if(!S.propId || !S.token){ showErr('กรุณา Connect ก่อนครับ'); return; }
   showLoad('กำลังดึงข้อมูล GEO & AIO...');
   try{
     const [orgCity, intlCountry, langCh, aioPages] = await Promise.all([
@@ -1944,6 +1948,7 @@ function setJobTab(t){
 }
 
 async function loadJobs(){
+  if(!S.propId || !S.token){ showErr('กรุณา Connect ก่อนครับ'); return; }
   showLoad('กำลังดึงข้อมูล Jobs...');
   try{
     const [paidSess, paidTrend, allPages, allPagesDur, organicPages, organicTrend, organicLang] = await Promise.all([
