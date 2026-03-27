@@ -41,6 +41,8 @@ body{background:var(--bg);font-family:var(--font);color:var(--ink);min-height:10
 .info-box{background:#fff5f5;border:1px solid #fcc;border-radius:10px;padding:12px 14px;font-size:12px;color:#c0392b;line-height:1.6;margin-bottom:18px;}
 .btn-main{width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;background:#e62227;color:#fff;font-weight:600;font-size:15px;font-family:var(--font);transition:background .15s;}
 .btn-main:hover{background:#c41a1f;}
+.btn-google{width:100%;padding:11px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);color:var(--ink);font-weight:500;font-size:14px;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .15s;}
+.btn-google:hover{border-color:#e62227;background:#fff5f5;}
 code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 5px;border-radius:5px;color:var(--blue);}
 
 /* ── TOPBAR ── */
@@ -361,11 +363,39 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
       <div class="setup-brand-sub">Publisher Dashboard · GA4 Real-time</div>
     </div>
     <div class="setup-card">
+      <!-- Backend URL config — ถ้ามี backend แล้ว ใส่ URL ตรงนี้ -->
+      <div class="field">
+        <label>Backend URL <span style="font-weight:400;color:var(--ink3);">(optional — สำหรับ auto-login)</span></label>
+        <input id="backendUrl" type="text" placeholder="https://your-project.vercel.app">
+        <div class="hint">ถ้ายังไม่มี backend ข้ามได้เลย — ใช้ Access Token แทนด้านล่าง</div>
+      </div>
+
       <div class="field"><label>GA4 Property ID</label><input id="propId" type="text" placeholder="123456789"><div class="hint">GA4 → Admin → Property Settings → Property ID</div></div>
       <div class="field"><label>Website / Media Name</label><input id="siteName" type="text" placeholder="thestandard.co"></div>
       <div class="field"><label>Average Articles Published per Day</label><input id="apd" type="number" placeholder="15" min="1"><div class="hint">Used to calculate Est. Pageviews / Article</div></div>
-      <div class="field"><label>Access Token</label><textarea id="token" placeholder="ya29.xxxx — Get from OAuth Playground using analytics.readonly scope"></textarea><div class="hint"><code>developers.google.com/oauthplayground</code> → Google Analytics Data API v1beta</div></div>
-      <div class="info-box">Metrics included: Pageviews · Unique Users · Est. PV/Article · Sessions · Bounce Rate · Avg Duration · City · Country · Gender · Age · Interests · Language · Top Articles</div>
+
+      <!-- OAuth login button — แสดงเมื่อมี backend URL -->
+      <div id="oauth-section" style="display:none;margin-bottom:16px;">
+        <button class="btn-google" onclick="startOAuth()">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Login with Google (Auto Token)
+        </button>
+        <div id="oauth-status" style="font-size:12px;color:var(--green);margin-top:8px;display:none;">✓ Connected — token จะ refresh อัตโนมัติ</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-size:11px;color:var(--ink3);">หรือ</span>
+        <div style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+
+      <div class="field">
+        <label>Access Token <span style="font-weight:400;color:var(--ink3);">(manual — หมดอายุทุก 1 ชั่วโมง)</span></label>
+        <textarea id="token" placeholder="ya29.xxxx — Get from OAuth Playground using analytics.readonly scope"></textarea>
+        <div class="hint"><code>developers.google.com/oauthplayground</code> → Google Analytics Data API v1beta</div>
+      </div>
+
+      <div class="info-box">Metrics: Pageviews · Unique Users · Est. PV/Article · Sessions · Bounce Rate · Avg Duration · City · Country · Gender · Age · Interests · Language · Top Articles</div>
       <button class="btn-main" onclick="connect()">Connect →</button>
     </div>
   </div>
@@ -840,6 +870,128 @@ code{font-family:var(--mono);font-size:10px;background:var(--card2);padding:1px 
 <div class="loading-ov" id="loading" style="display:none;"><div class="loading-ring"></div><div class="loading-txt" id="loading-txt">กำลังโหลด...</div></div>
 
 <script>
+// ══ OAUTH CONFIG ══
+const SCOPES = 'https://www.googleapis.com/auth/analytics.readonly https://www.googleapis.com/auth/userinfo.profile';
+let oauthState = { backendUrl:'', clientId:'', refreshToken: localStorage.getItem('ga4_refresh_token')||'', tokenExpiry:0 };
+
+// Show/hide oauth section when backend URL is typed
+document.addEventListener('DOMContentLoaded', ()=>{
+  const bu = document.getElementById('backendUrl');
+  if(bu) bu.addEventListener('input', ()=>{
+    const has = bu.value.trim().length > 0;
+    document.getElementById('oauth-section').style.display = has ? '' : 'none';
+  });
+  // restore saved state
+  const saved = localStorage.getItem('ga4_backend_url');
+  if(saved && bu){ bu.value=saved; document.getElementById('oauth-section').style.display=''; }
+  if(oauthState.refreshToken){ document.getElementById('oauth-status').style.display=''; }
+  // handle OAuth callback (?code=xxx in URL)
+  checkOAuthCallback();
+});
+
+async function startOAuth(){
+  const backendUrl = document.getElementById('backendUrl').value.trim();
+  const propId     = document.getElementById('propId').value.trim();
+  if(!backendUrl){ alert('กรุณาใส่ Backend URL ก่อนครับ'); return; }
+  if(!propId)    { alert('กรุณาใส่ GA4 Property ID ก่อนครับ'); return; }
+  // save form state before redirect
+  localStorage.setItem('ga4_backend_url',   backendUrl);
+  localStorage.setItem('ga4_prop_id',       propId);
+  localStorage.setItem('ga4_site_name',     document.getElementById('siteName').value.trim()||propId);
+  localStorage.setItem('ga4_apd',           document.getElementById('apd').value||'15');
+  // fetch client_id from backend (or use env baked in)
+  const redirectUri = window.location.href.split('?')[0];
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth`+
+    `?client_id=${encodeURIComponent(await getClientId(backendUrl))}`+
+    `&redirect_uri=${encodeURIComponent(redirectUri)}`+
+    `&response_type=code`+
+    `&scope=${encodeURIComponent(SCOPES)}`+
+    `&access_type=offline&prompt=consent`;
+  window.location.href = authUrl;
+}
+
+async function getClientId(backendUrl){
+  try{
+    const r = await fetch(`${backendUrl}/api/auth?action=client_id`);
+    const j = await r.json();
+    return j.client_id || '';
+  } catch{ return ''; }
+}
+
+async function checkOAuthCallback(){
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if(!code) return;
+  // clean URL
+  window.history.replaceState({}, '', window.location.pathname);
+  const backendUrl = localStorage.getItem('ga4_backend_url');
+  if(!backendUrl){ return; }
+  try{
+    showLoad('กำลัง exchange token...');
+    const redirectUri = window.location.href.split('?')[0];
+    const r = await fetch(`${backendUrl}/api/auth?action=exchange`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ code, redirect_uri: redirectUri })
+    });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    // save tokens
+    oauthState.refreshToken = j.refresh_token;
+    oauthState.tokenExpiry  = Date.now() + (j.expires_in * 1000);
+    localStorage.setItem('ga4_refresh_token', j.refresh_token);
+    // restore form & connect
+    document.getElementById('backendUrl').value = backendUrl;
+    document.getElementById('propId').value     = localStorage.getItem('ga4_prop_id')||'';
+    document.getElementById('siteName').value   = localStorage.getItem('ga4_site_name')||'';
+    document.getElementById('apd').value        = localStorage.getItem('ga4_apd')||'15';
+    document.getElementById('oauth-section').style.display = '';
+    document.getElementById('oauth-status').style.display  = '';
+    document.getElementById('token').value = '(ใช้ OAuth — auto refresh)';
+    // use the access token directly
+    S.token = j.access_token;
+    document.getElementById('connect-btn-text') && (document.getElementById('connect-btn-text').textContent='Connecting...');
+    hideLoad();
+    connectWithToken(j.access_token, backendUrl);
+  } catch(e){
+    hideLoad();
+    alert('OAuth error: '+e.message);
+  }
+}
+
+async function getValidToken(){
+  const backendUrl = localStorage.getItem('ga4_backend_url');
+  // if no backend or no refresh token — use manual token
+  if(!backendUrl || !oauthState.refreshToken) return S.token;
+  // if token still valid (buffer 5 min)
+  if(oauthState.tokenExpiry && Date.now() < oauthState.tokenExpiry - 300000) return S.token;
+  // refresh
+  try{
+    const r = await fetch(`${backendUrl}/api/auth?action=refresh`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ refresh_token: oauthState.refreshToken })
+    });
+    const j = await r.json();
+    if(j.error) throw new Error(j.error);
+    S.token = j.access_token;
+    oauthState.tokenExpiry = Date.now() + (j.expires_in * 1000);
+    return S.token;
+  } catch(e){
+    console.warn('Token refresh failed:', e.message);
+    return S.token;
+  }
+}
+
+function connectWithToken(token, backendUrl){
+  S.token    = token;
+  S.propId   = localStorage.getItem('ga4_prop_id')||document.getElementById('propId').value.trim();
+  S.siteName = localStorage.getItem('ga4_site_name')||document.getElementById('siteName').value.trim()||S.propId;
+  S.apd      = parseInt(localStorage.getItem('ga4_apd')||'15');
+  oauthState.backendUrl = backendUrl;
+  showDashboard();
+  loadAll();
+}
+
 // ══ STATE ══
 let S = {
   propId:'', siteName:'', token:'', apd:15, mode:'pitch',
@@ -950,12 +1102,13 @@ function applyCustomDate(){
 
 // ══ GA4 API ══
 async function ga4(metrics,dims,startDate,endDate){
+  const token = await getValidToken();  // auto-refresh if needed
   const sd=startDate||S.dateStart, ed=endDate||S.dateEnd;
   const body={dateRanges:[{startDate:sd,endDate:ed}],metrics:metrics.map(m=>({name:m}))};
   if(dims?.length) body.dimensions=dims.map(d=>({name:d}));
   const r=await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${S.propId}:runReport`,{
     method:'POST',
-    headers:{Authorization:`Bearer ${S.token}`,'Content-Type':'application/json'},
+    headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
     body:JSON.stringify(body)
   });
   if(!r.ok){const e=await r.json();throw new Error(e.error?.message||`HTTP ${r.status}`);}
@@ -2177,32 +2330,37 @@ function renderRTChart(){
     }
   });
 }
-function connect(){
-  const p=document.getElementById('propId').value.trim();
-  const t=document.getElementById('token').value.trim();
-  if(!p||!t){alert('กรุณาใส่ Property ID และ Access Token');return;}
-  S.propId=p; S.token=t;
-  S.siteName=document.getElementById('siteName').value.trim()||p;
-  S.apd=parseInt(document.getElementById('apd').value)||15;
+function showDashboard(){
   document.getElementById('screen-setup').classList.remove('active');
   document.getElementById('screen-dashboard').classList.add('active');
   document.getElementById('topbar-site').textContent=S.siteName;
-  // ensure correct initial state
+  const labels={claude:'Claude',gemini:'Gemini',openai:'GPT-4o'};
+  document.getElementById('ai-provider-label').textContent=labels[AI.provider]||'AI';
   document.getElementById('rt-content').style.display='none';
   document.getElementById('jobs-content').style.display='none';
   document.getElementById('weekly-content').style.display='none';
   document.getElementById('geo-content').style.display='none';
   document.getElementById('export-area').style.display='';
   document.getElementById('date-bar').style.display='';
-  // sync AI provider label
-  const labels={claude:'Claude',gemini:'Gemini',openai:'GPT-4o'};
-  document.getElementById('ai-provider-label').textContent=labels[AI.provider]||'AI';
-  // set default date inputs
   const today=new Date().toISOString().slice(0,10);
   const ago30=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
   document.getElementById('dateTo').value=today;
   document.getElementById('dateFrom').value=ago30;
   setInterval(fetchRT,30000);
+}
+
+function connect(){
+  const p=document.getElementById('propId').value.trim();
+  const t=document.getElementById('token').value.trim();
+  if(!p){ alert('กรุณาใส่ Property ID'); return; }
+  if(!t && !oauthState.refreshToken){ alert('กรุณาใส่ Access Token หรือ Login with Google'); return; }
+  S.propId   = p;
+  S.token    = t || S.token;
+  S.siteName = document.getElementById('siteName').value.trim()||p;
+  S.apd      = parseInt(document.getElementById('apd').value)||15;
+  const bu   = document.getElementById('backendUrl').value.trim();
+  if(bu) oauthState.backendUrl = bu;
+  showDashboard();
   loadAll();
 }
 function logout(){
