@@ -906,7 +906,7 @@ async function startOAuth(){
     `&redirect_uri=${encodeURIComponent(redirectUri)}`+
     `&response_type=code`+
     `&scope=${encodeURIComponent(SCOPES)}`+
-    `&access_type=offline&prompt=consent`;
+    `&access_type=offline&prompt=select_account%20consent`;
   window.location.href = authUrl;
 }
 
